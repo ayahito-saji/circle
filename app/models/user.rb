@@ -5,6 +5,9 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :trackable, :validatable, :omniauthable
 
   has_many :social_profiles, dependent: :destroy
+
+  validates :name, presence: true, length: { maximum: 50 }
+
   def social_profile(provider)
     social_profiles.select{ |sp| sp.provider == provider.to_s }.first
   end
