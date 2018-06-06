@@ -5,7 +5,7 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :trackable, :validatable, :omniauthable
 
   has_many :social_profiles, dependent: :destroy
-  belongs_to :room
+  belongs_to :room, required: false
 
   validates :name, presence: true, length: { maximum: 50 }
 
