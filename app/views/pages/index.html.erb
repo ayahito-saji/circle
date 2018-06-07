@@ -1,8 +1,8 @@
 <% if user_signed_in? %>
     Hello, <%= current_user.name %>!
     <%= link_to "Log out", destroy_user_session_path, method: :delete %>
-    <%= link_to "Make a group", new_room_path %>
-    <%= link_to "Search a group", search_rooms_path %>
+    <%= link_to "Make a room", room_path, method: :post %>
+    <%= link_to "Search a room", room_search_path, method: :post %>
 <% else %>
     Guest <%= link_to "Log in", new_user_session_path %> <%= link_to "Sign up", new_user_registration_path %>
 <% end %>
