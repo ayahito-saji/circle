@@ -14,6 +14,9 @@ class RoomController < ApplicationController
     room = Room.find_by(name: params[:room][:name])
     if room && room.password == params[:room][:password]
       current_user.update_attributes(room: room)
+      room.users.each do |member|
+        UserChannel.broadcast_to(member, "update_member_list(#{room.users.map{|item| item.name}})")
+      end
       redirect_to root_path, notice: 'Entered successfully.'
     else
       redirect_to root_path, notice: 'Invalid name or password.'
@@ -26,9 +29,16 @@ class RoomController < ApplicationController
 
   private
   def exit_room
-    if current_user.room && current_user.room.users.count == 1
-      current_user.room.destroy
-    end
+    current_room = current_user.room
     current_user.update_attributes(room: nil)
+    if current_room
+      if current_room.users.count == 0
+        current_room.destroy
+      else
+        current_room.users.each do |member|
+          UserChannel.broadcast_to(member, "update_member_list(#{current_room.users.map{|item| item.name}})")
+        end
+      end
+    end
   end
 end

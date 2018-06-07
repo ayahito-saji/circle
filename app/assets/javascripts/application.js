@@ -12,3 +12,7 @@
 //
 //= require rails-ujs
 //= require_tree .
+
+function update_member_list(data){
+    $("#member_list").html(data.map(function(value){return "<li>"+value+"</li>"}).join(""))
+}
