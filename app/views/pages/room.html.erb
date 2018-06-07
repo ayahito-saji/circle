@@ -1,1 +1,18 @@
-<h1>Hello! <%= current_user.name %>!</h1>
+<h1>Room <%= @current_room.name %></h1>
+<p>
+  <label>name</label><br />
+  <%= @current_room.name %><br />
+  <label>password</label><br />
+  <%= !@current_room.password.blank? ? @current_room.password : 'no password' %><br />
+</p>
+
+<p>
+  <label>members</label>
+  <ul>
+    <% @current_room.users.each do |member| %>
+        <li><%= member.name %></li>
+    <% end %>
+  </ul>
+</p>
+
+<%= link_to 'exit room', room_exit_path, method: :delete %>

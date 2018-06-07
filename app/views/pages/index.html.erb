@@ -1,8 +1,36 @@
 <% if user_signed_in? %>
     Hello, <%= current_user.name %>!
     <%= link_to "Log out", destroy_user_session_path, method: :delete %>
-    <%= link_to "Make a room", room_path, method: :post %>
-    <%= link_to "Search a room", room_search_path, method: :post %>
+    <%= form_tag room_new_path, method: :post do %>
+        <h1>Create Room</h1>
+        <div class="field">
+          <%= label :room, :name %><br />
+          <%= text_field :room, :name %>
+        </div>
+        <div class="field">
+          <%= label :room, :password %><br />
+          <%= text_field :room, :password %>
+        </div>
+        <div class="actions">
+          <%= submit_tag "Create room" %>
+        </div>
+
+    <% end %>
+
+    <%= form_tag room_search_path, method: :post do %>
+        <h1>Search Room</h1>
+        <div class="field">
+          <%= label :room, :name %><br />
+          <%= text_field :room, :name %>
+        </div>
+        <div class="field">
+          <%= label :room, :password %><br />
+          <%= text_field :room, :password %>
+        </div>
+        <div class="actions">
+          <%= submit_tag "Search Room" %>
+        </div>
+    <% end %>
 <% else %>
     Guest <%= link_to "Log in", new_user_session_path %> <%= link_to "Sign up", new_user_registration_path %>
 <% end %>
