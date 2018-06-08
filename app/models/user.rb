@@ -4,6 +4,9 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :trackable, :validatable, :omniauthable
 
+  serialize :stack
+  serialize :operators
+
   has_many :social_profiles, dependent: :destroy
   belongs_to :room, required: false
   has_many :rulebooks

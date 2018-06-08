@@ -1,4 +1,5 @@
 class RulebooksController < ApplicationController
+  require_relative '../../lib/assets/n_stack_radius'
   before_action :authenticate_user!
   def new
     @rulebook = current_user.rulebooks.new

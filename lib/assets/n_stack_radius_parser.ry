@@ -1,0 +1,121 @@
+class NStackRadiusParser
+  prechigh
+    left '*' '/' '%'
+    left '+' '-'
+  preclow
+
+  rule
+    program
+        : phases                                                            {result = [:program, nil, [val[0]]]}
+
+    phases
+        :                                                                   {result = [:phases, nil, []]}
+        | phases phase                                                      {result[2] << val[1]}
+
+    phase
+        : PHASE IDENTIFIER '{' statements '}'                               {result = [:phase, val[3], [[:identifier, val[1], nil]]]}
+
+    do
+        : IDENTIFIER DO '{' statements '}'                                 {result = [:do, val[3], [[:identifier, val[0], nil]]]}
+
+    statements
+        :                                                                   {result = [:statements, nil, []]}
+        | statements statement                                              {result[2] << val[1]}
+        | statements statement ';'                                          {result[2] << val[1]}
+
+    statement
+        : expr
+        | variable_address '=' expr                                         {result = [:assign_variable, nil, [val[0], val[2]]]}
+        | do
+        | GOTO IDENTIFIER                                                   {result = [:goto, nil, [[:identifier, val[1], nil]]]}
+
+    expr
+        : expr '+' expr                                                     {result = [:add, nil, [val[0], val[2]]]}
+        | expr '-' expr                                                     {result = [:dif, nil, [val[0], val[2]]]}
+        | expr '*' expr                                                     {result = [:mul, nil, [val[0], val[2]]]}
+        | expr '/' expr                                                     {result = [:div, nil, [val[0], val[2]]]}
+        | expr '%' expr                                                     {result = [:mod, nil, [val[0], val[2]]]}
+        | NUMBER                                                            {result = [:number, val[0], nil]}
+        | STRING                                                            {result = [:string, val[0], nil]}
+        | BOOLEAN                                                           {result = [:boolean, val[0], nil]}
+        | variable_address                                                  {result = [:reference_variable, nil, [val[0]]]}
+
+    variable_address
+        : IDENTIFIER                                                        {result = [:identifier, val[0], nil]}
+        | variable_address '[' expr ']'                                     {result = [:index, nil, [val[0], val[2]]]}
+end
+
+---- header
+
+require 'strscan'
+require 'pp'
+
+---- inner
+
+def parse(str)
+    scanner = StringScanner.new(str)
+    @q = []
+    while !scanner.eos?
+        scanner.scan(/[\s\n]+/)
+        scanner.scan(/phase/) ?                     @q << [:PHASE, :PHASE] :
+        scanner.scan(/true/) ?                      @q << [:BOOLEAN, true] :
+        scanner.scan(/false/) ?                     @q << [:BOOLEAN, false] :
+        scanner.scan(/do/) ?                        @q << [:DO, :do] :
+        scanner.scan(/goto/) ?                      @q << [:GOTO, :goto] :
+
+        scanner.scan(/\".*?\"/) ?                   @q << [:STRING, scanner.matched[1..-2]] :
+        scanner.scan(/\'.*?\'/) ?                   @q << [:STRING, scanner.matched[1..-2]] :
+        scanner.scan(/[a-zA-Z_][a-zA-Z0-9_]*/) ?    @q << [:IDENTIFIER, scanner.matched.to_s] :
+        scanner.scan(/([0-9]*\.[0-9]+)/) ?          @q << [:NUMBER, scanner.matched.to_f] :
+        scanner.scan(/(0|[1-9][0-9]*)/) ?           @q << [:NUMBER, scanner.matched.to_i] :
+        scanner.scan(/./) ?                         @q << [scanner.matched, scanner.matched] :
+        raise("parse error")
+    end
+    tree = do_parse
+    pp tree
+    convert(tree)
+end
+
+def next_token
+    @q.shift
+end
+
+def convert(tree)
+    stack = [tree]
+    operations = []
+    while !stack.empty?
+        node = stack.pop()
+        #puts "NODE:#{node[0]}"
+        #puts "CHILDREN:#{node[2]}"
+        case node[0]
+            when :phase # フェイズは特別な処理を行う
+                node[2].each do |child|
+                    stack.push(child)
+                end
+                operations.push([:phase, convert(node[1]), node[2].length])
+
+            else        # それ以外は同じ
+                if node[2]
+                    node[2].each do |child|
+                        stack.push(child)
+                    end
+                    operations.push([node[0], node[1], node[2].length])
+                else
+                    operations.push([node[0], node[1], 0])
+                end
+        end
+    end
+    operations
+end
+
+---- footer
+
+if __FILE__ == $0
+    parser = NStackRadiusParser.new
+    prg = ""
+    File.open("program.rlb", "r") do |f|
+        prg = f.read.chomp
+    end
+    pp parser.parse(prg)
+
+end

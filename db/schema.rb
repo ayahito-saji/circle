@@ -15,6 +15,10 @@ ActiveRecord::Schema.define(version: 20180608025155) do
   create_table "rooms", force: :cascade do |t|
     t.string "name", default: "", null: false
     t.string "password", default: ""
+    t.text "phase_env"
+    t.text "variable_env"
+    t.text "stack"
+    t.text "operators"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_rooms_on_name", unique: true
@@ -54,6 +58,8 @@ ActiveRecord::Schema.define(version: 20180608025155) do
 
   create_table "users", force: :cascade do |t|
     t.string "name", default: "", null: false
+    t.text "stack"
+    t.text "operators"
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
     t.string "reset_password_token"
