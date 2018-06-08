@@ -1,3 +1,5 @@
 phase main{
-    a=0
+    ActiveUser do{
+        print("Hello!")
+    }
 }

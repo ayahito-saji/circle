@@ -13,10 +13,10 @@ class NStackRadiusParser
         | phases phase                                                      {result[2] << val[1]}
 
     phase
-        : PHASE IDENTIFIER '{' statements '}'                               {result = [:phase, val[3], [[:identifier, val[1], nil]]]}
+        : PHASE identifier '{' statements '}'                               {result = [:phase, val[3], [val[1]]]}
 
     do
-        : IDENTIFIER DO '{' statements '}'                                 {result = [:do, val[3], [[:identifier, val[0], nil]]]}
+        : identifier DO '{' statements '}'                                 {result = [:do, val[3], [val[0]]]}
 
     statements
         :                                                                   {result = [:statements, nil, []]}
@@ -27,7 +27,13 @@ class NStackRadiusParser
         : expr
         | variable_address '=' expr                                         {result = [:assign_variable, nil, [val[0], val[2]]]}
         | do
-        | GOTO IDENTIFIER                                                   {result = [:goto, nil, [[:identifier, val[1], nil]]]}
+        | GOTO identifier                                                   {result = [:goto, nil, [val[1]]]}
+        | identifier '(' ')'                                                {result = [:call_function, nil, [val[0]]]}
+        | identifier '(' arguments ')'                                      {result = [:call_function, nil, [val[0], val[2]]]}
+
+    arguments
+        : expr                                                              {result = [:arguments, nil, [val[0]]]}
+        | arguments ',' expr                                                {result[2] << val[2]}
 
     expr
         : expr '+' expr                                                     {result = [:add, nil, [val[0], val[2]]]}
@@ -41,8 +47,11 @@ class NStackRadiusParser
         | variable_address                                                  {result = [:reference_variable, nil, [val[0]]]}
 
     variable_address
-        : IDENTIFIER                                                        {result = [:identifier, val[0], nil]}
+        : identifier                                                        {result = val[0]}
         | variable_address '[' expr ']'                                     {result = [:index, nil, [val[0], val[2]]]}
+
+    identifier
+        : IDENTIFIER                                                        {result = [:identifier, val[0], nil]}
 end
 
 ---- header
@@ -93,6 +102,12 @@ def convert(tree)
                     stack.push(child)
                 end
                 operations.push([:phase, convert(node[1]), node[2].length])
+
+            when :do
+                node[2].each do |child|
+                    stack.push(child)
+                end
+                operations.push([:do, convert(node[1]), node[2].length])
 
             else        # それ以外は同じ
                 if node[2]
