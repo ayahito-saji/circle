@@ -14,5 +14,12 @@
     <% end %>
   </ul>
 </p>
-
+<p>
+  <label>rulebooks</label>
+  <ul id="member_list">
+    <% Rulebook.all.each do |rulebook| %>
+        <li><a href="javascript: void(0)" onclick="App.user.push({'order': 'run', 'rulebook': <%= rulebook.id %>});"><%= rulebook.title %></a></li>
+    <% end %>
+  </ul>
+</p>
 <%= link_to 'exit room', exit_room_path, method: :delete %>

@@ -1,8 +1,9 @@
+<h1>CIRCLE</h1>
 <% if user_signed_in? %>
     Hello, <%= current_user.name %>!
     <%= link_to "Log out", destroy_user_session_path, method: :delete %>
     <%= form_tag new_room_path, method: :post do %>
-        <h1>Create Room</h1>
+        <h2>Create Room</h2>
         <div class="field">
           <%= label :room, :name %><br />
           <%= text_field :room, :name %>
@@ -18,7 +19,7 @@
     <% end %>
 
     <%= form_tag search_room_path, method: :post do %>
-        <h1>Search Room</h1>
+        <h2>Search Room</h2>
         <div class="field">
           <%= label :room, :name %><br />
           <%= text_field :room, :name %>
@@ -31,6 +32,23 @@
           <%= submit_tag "Search Room" %>
         </div>
     <% end %>
+
+    <h2>Rulebooks</h2>
+    <table>
+      <tr>
+        <th>Title</th>
+        <th>updated_at</th>
+        <th>created_at</th>
+      </tr>
+      <% current_user.rulebooks.each do |rulebook| %>
+      <tr>
+        <td><%= link_to rulebook.title, rulebook %></td>
+        <td><%= rulebook.updated_at %></td>
+        <td><%= rulebook.created_at %></td>
+      </tr>
+      <% end %>
+    </table>
+    <%= link_to "new rulebook", new_rulebook_path %>
 <% else %>
-    Guest <%= link_to "Log in", new_user_session_path %> <%= link_to "Sign up", new_user_registration_path %>
+    <%= link_to "Log in", new_user_session_path %> <%= link_to "Sign up", new_user_registration_path %>
 <% end %>

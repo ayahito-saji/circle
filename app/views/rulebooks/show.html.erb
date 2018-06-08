@@ -1,0 +1,11 @@
+<h1><%= @rulebook.title %></h1>
+<% if user_signed_in? && current_user.id == @rulebook.user.id %>
+  <%= link_to "edit rulebook", edit_rulebook_path %>
+  <%= link_to "delete rulebook", rulebook_path, method: :delete %>
+<% end %>
+<h2>Discription</h2>
+<p><%= @rulebook.description %></p>
+<h2>Code</h2>
+<p><%= @rulebook.code %></p>
+
+<%= link_to "back", root_path %>
