@@ -6,6 +6,9 @@ class DeviseCreateUsers < ActiveRecord::Migration[5.1]
       t.string :name,               null: false, default: ""
       t.text :stack,                null: true
       t.text :operators,            null: true
+      t.text :screen,               null: true
+      t.boolean :active ,           null: false, default: false
+      t.string :action_auth ,       null: true
 
       ## Database authenticatable
       t.string :email,              null: false, default: ""

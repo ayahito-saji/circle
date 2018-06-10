@@ -19,6 +19,7 @@ ActiveRecord::Schema.define(version: 20180608025155) do
     t.text "variable_env"
     t.text "stack"
     t.text "operators"
+    t.boolean "running", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_rooms_on_name", unique: true
@@ -60,6 +61,9 @@ ActiveRecord::Schema.define(version: 20180608025155) do
     t.string "name", default: "", null: false
     t.text "stack"
     t.text "operators"
+    t.text "screen"
+    t.boolean "active", default: false, null: false
+    t.string "action_auth"
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
     t.string "reset_password_token"

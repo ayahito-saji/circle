@@ -7,6 +7,7 @@ class CreateRooms < ActiveRecord::Migration[5.1]
       t.text :variable_env,     null: true
       t.text :stack,            null: true
       t.text :operators,        null: true
+      t.boolean :running ,      null: false, default: false
 
       t.timestamps
     end
