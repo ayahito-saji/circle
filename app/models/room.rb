@@ -6,6 +6,6 @@ class Room < ApplicationRecord
   serialize :stack
   serialize :operators
 
-  validates :name, presence: true, length: { maximum: 50 }
+  validates :name, presence: true, length: { maximum: 50 }, uniqueness: true
   validates :password, length: { maximum: 50 }
 end
