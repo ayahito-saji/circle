@@ -9,8 +9,11 @@ class UserChannel < ApplicationCable::Channel
   end
 
   def push(data)
-    radius = NStackRadius.new
-    radius.room = current_user.room
-    radius.run(current_user, data['body'])
+    if current_user.room
+      radius = NStackRadius.new
+      radius.setStatus(current_user.room)
+      radius.run(current_user, data['body'])
+      radius.saveStatus
+    end
   end
 end

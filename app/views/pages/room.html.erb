@@ -19,7 +19,7 @@
     <label>rulebooks</label>
   <ul id="member_list">
     <% Rulebook.all.each do |rulebook| %>
-        <li><a href="javascript: void(0)" onclick="App.user.push({'order': 'run', 'rulebook': <%= rulebook.id %>});"><%= rulebook.title %></a></li>
+        <li><a href="javascript: void(0)" onclick="App.user.push({'order': 'start', 'rulebook': <%= rulebook.id %>});"><%= rulebook.title %></a></li>
     <% end %>
   </ul>
   </p>
