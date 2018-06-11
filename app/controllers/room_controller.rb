@@ -1,12 +1,17 @@
 class RoomController < ApplicationController
+  def show
+    unless user_signed_in? && @current_room = current_user.room
+      redirect_to current_user_path
+    end
+  end
   def create
     exit_room
     room = Room.new(params.require(:room).permit(:name, :password))
     if room.save
       current_user.update_attributes(room: room)
-      redirect_to root_path, notice: 'Created room successfully.'
+      redirect_to current_room_path, notice: 'Created room successfully.'
     else
-      redirect_to root_path, notice: 'Invalid name or password.'
+      redirect_to current_user_path, notice: 'Invalid name or password.'
     end
   end
   def search
@@ -17,14 +22,14 @@ class RoomController < ApplicationController
       room.users.each do |member|
         UserChannel.broadcast_to(member, "update_member_list(#{room.users.map{|item| item.name}})")
       end
-      redirect_to root_path, notice: 'Entered successfully.'
+      redirect_to current_room_path, notice: 'Entered successfully.'
     else
-      redirect_to root_path, notice: 'Invalid name or password.'
+      redirect_to current_user_path, notice: 'Invalid name or password.'
     end
   end
   def destroy
     exit_room
-    redirect_to root_path, notice: 'Exited successfully.'
+    redirect_to current_user_path, notice: 'Exited successfully.'
   end
 
   private
