@@ -13,3 +13,10 @@
  *= require_tree .
  *= require_self
  */
+@font-face {
+    font-family : 'NotoSansCJKjp';
+    src: font-url('NotoSansCJKjp-Thin.otf') format('truetype');
+}
+html, body{
+    font-family: 'Roboto Mono', 'NotoSansCJKjp';
+}
