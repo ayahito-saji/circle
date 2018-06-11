@@ -1,18 +1,21 @@
 <h1>CIRCLE</h1>
 Hello, <%= current_user.name %>!
-<%= link_to "Log out", destroy_user_session_path, method: :delete %>
+<%= link_to "Log out", destroy_user_session_path, method: :delete %><br/>
+<% if current_user.room %>
+    <%= link_to "Current Room '#{current_user.room.name}'", current_room_path %><br/>
+<% end %>
 <%= form_tag new_room_path, method: :post do %>
     <h2>Create Room</h2>
     <div class="field">
-      <%= label :room, :name %><br />
-      <%= text_field :room, :name %>
+      <%= label :rooms, :name %><br />
+      <%= text_field :rooms, :name %>
     </div>
     <div class="field">
-      <%= label :room, :password %><br />
-      <%= text_field :room, :password %>
+      <%= label :rooms, :password %><br />
+      <%= text_field :rooms, :password %>
     </div>
     <div class="actions">
-      <%= submit_tag "Create room" %>
+      <%= submit_tag "Create rooms" %>
     </div>
 
 <% end %>
@@ -20,12 +23,12 @@ Hello, <%= current_user.name %>!
 <%= form_tag search_room_path, method: :post do %>
     <h2>Search Room</h2>
     <div class="field">
-      <%= label :room, :name %><br />
-      <%= text_field :room, :name %>
+      <%= label :rooms, :name %><br />
+      <%= text_field :rooms, :name %>
     </div>
     <div class="field">
-      <%= label :room, :password %><br />
-      <%= text_field :room, :password %>
+      <%= label :rooms, :password %><br />
+      <%= text_field :rooms, :password %>
     </div>
     <div class="actions">
       <%= submit_tag "Search Room" %>
