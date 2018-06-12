@@ -66,7 +66,7 @@ class NStackRadius
 
         when :do
           do_users = @status[:users]
-          do_users.each do |user|
+          do_users.each_value do |user|
             user[:status][:stack] = []
             user[:status][:operators] = data.clone
           end
@@ -109,7 +109,7 @@ class NStackRadius
       end
 
       # 画面の初期化、ユーザーオペレータの設定
-      @status[:users].each do |user|
+      @status[:users].each_value do |user|
         user[:status][:stack] = []
         user[:status][:operators] = []
         user[:status][:screen] = "<h1>#{rulebook.title}</h1><p><button onclick=App.user.push({'order':'end'})>Quit</button></p>"
@@ -121,9 +121,16 @@ class NStackRadius
       @status[:room][:status][:running] = true
       @status[:room][:status][:stack] = []
       @status[:room][:status][:operators] = @status[:room][:status][:phase_env]['main'].clone
-    end
-    if pushed_data['order'] == 'end'
+    elsif pushed_data['order'] == 'onload'
+      return if @status[:room][:status][:running] == false
+      user = @status[:users][pushed_user.id]
+      UserChannel.broadcast_to(user[:model], "$('body').html(\"#{user[:status][:screen]}\")")
+      return
+    elsif pushed_data['order'] == 'end'
       @status[:room][:status][:running] = false
+      @status[:users].each_value do |user|
+        UserChannel.broadcast_to(user[:model], "alert('停止: ルールブックは停止されました');")
+      end
       return
     end
     p "MAIN LOOP"
@@ -132,7 +139,7 @@ class NStackRadius
       # メインフェイズの実行
       do_operators(@status[:room][:status][:operators], @status[:room][:status][:stack], nil)
       # ユーザーフェイズの実行
-      @status[:users].each do |user|
+      @status[:users].each_value do |user|
         puts "USER PHASE: #{user[:model][:name]}"
         do_operators(user[:status][:operators], user[:status][:stack], user)
       end
@@ -154,7 +161,7 @@ class NStackRadius
         operators:    @status[:room][:model].operators,
         stack:        @status[:room][:model].stack
     }
-    @status[:users] = []
+    @status[:users] = {}
     @status[:room][:model].users.each do |user|
       buf = {
           model:      User.find(user.id)
@@ -163,15 +170,16 @@ class NStackRadius
           stack:      buf[:model].stack,
           operators:  buf[:model].operators,
           active:     buf[:model].active,
-          action_auth:buf[:model].action_auth
+          action_auth:buf[:model].action_auth,
+          screen:     buf[:model].screen
       }
-      @status[:users] << buf
+      @status[:users][buf[:model].id] = buf
     end
     puts "@status = #{@status}"
   end
   def saveStatus
     @status[:room][:model].update_attributes(@status[:room][:status])
-    @status[:users].each do |user|
+    @status[:users].each_value do |user|
       user[:model].update_attributes(user[:status])
     end
   end
@@ -179,7 +187,7 @@ class NStackRadius
 
   def all_users_operators_empty?
     all_users_operators_empty = true
-    @status[:users].each do |user|
+    @status[:users].each_value do |user|
       if user[:status][:operators] == false
         all_users_operators_empty = false
         break

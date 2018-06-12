@@ -13,8 +13,9 @@
     <%= javascript_include_tag 'application' %>
   </head>
 
-  <body><%= notice %><%= alert %>
+  <body data-controller="<%= params[:controller] %>" data-action="<%= params[:action] %>"><%= notice %><%= alert %>
   <%= yield %>
+  <%= debug(params) %>
   </body>
 </html>
 
