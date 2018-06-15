@@ -20,7 +20,6 @@ ActiveRecord::Schema.define(version: 20180608025155) do
     t.text "stack"
     t.text "operators"
     t.boolean "running", default: false, null: false
-    t.integer "broadcast_id", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_rooms_on_name", unique: true

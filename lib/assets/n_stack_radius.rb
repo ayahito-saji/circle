@@ -203,7 +203,6 @@ class NStackRadius
         variable_env: @status[:room][:model].variable_env,
         operators:    @status[:room][:model].operators,
         stack:        @status[:room][:model].stack,
-        broadcast_id: @status[:room][:model].broadcast_id
     }
     @status[:users] = {}
     @status[:room][:model].users.each do |user|
