@@ -28,8 +28,6 @@ class NStackRadiusParser
         | variable_address '=' expr                                         {result = [:assign_variable, nil, [val[0], val[2]]]}
         | do
         | GOTO identifier                                                   {result = [:goto, nil, [val[1]]]}
-        | identifier '(' ')'                                                {result = [:call_function, nil, [val[0]]]}
-        | identifier '(' arguments ')'                                      {result = [:call_function, nil, [val[0], val[2]]]}
 
     arguments
         : expr                                                              {result = [:arguments, nil, [val[0]]]}
@@ -45,6 +43,8 @@ class NStackRadiusParser
         | STRING                                                            {result = [:string, val[0], nil]}
         | BOOLEAN                                                           {result = [:boolean, val[0], nil]}
         | variable_address                                                  {result = [:reference_variable, nil, [val[0]]]}
+        | identifier '(' ')'                                                {result = [:call_function, nil, [val[0]]]}
+        | identifier '(' arguments ')'                                      {result = [:call_function, nil, [val[0], val[2]]]}
 
     variable_address
         : identifier                                                        {result = val[0]}
