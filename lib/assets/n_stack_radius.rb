@@ -170,7 +170,7 @@ class NStackRadius
   # 各デバイスのフロントで実行されるプログラムを渡します。
 
   def broadcast_to(user, value)
-    UserChannel.broadcast_to(user[:model], value)
+    DeliverScriptJob.perform_later(user[:model], value)
 
     # debug_code = "<h3>Operators</h3>"
     # debug_code += "<table><tr>"
