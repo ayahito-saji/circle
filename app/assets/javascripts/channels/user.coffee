@@ -11,10 +11,11 @@ App.user = App.cable.subscriptions.create "UserChannel",
   received: (data) ->
     # Called when there's incoming data on the websocket for this channel
     if window.broadcast_id < data['broadcast_id']
+      window.broadcast_id = data['broadcast_id']
       console.log(data['broadcast_id'])
       console.log(data['value'])
       eval(data['value'])
-      alert(data['broadcast_id']+"\n"+data['value'])
+    alert(data['broadcast_id']+"\n"+data['value'])
 
   push: (body) ->
     @perform 'push', 'body': body
