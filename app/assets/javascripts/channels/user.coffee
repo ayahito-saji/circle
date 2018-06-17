@@ -11,6 +11,7 @@ App.user = App.cable.subscriptions.create "UserChannel",
     # Called when there's incoming data on the websocket for this channel
     console.log(data)
     eval(data)
+    alert(data)
 
   push: (body) ->
     @perform 'push', 'body': body
