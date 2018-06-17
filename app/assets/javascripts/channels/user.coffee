@@ -1,3 +1,4 @@
+window.broadcast_id = -1
 App.user = App.cable.subscriptions.create "UserChannel",
   connected: ->
     # Called when the subscription is ready for use on the server
@@ -9,9 +10,11 @@ App.user = App.cable.subscriptions.create "UserChannel",
 
   received: (data) ->
     # Called when there's incoming data on the websocket for this channel
-    console.log(data)
-    eval(data)
-    alert(data)
+    if window.broadcast_id < data['broadcast_id']
+      console.log(data['broadcast_id'])
+      console.log(data['value'])
+      eval(data['value'])
+      alert(data['broadcast_id']+"\n"+data['value'])
 
   push: (body) ->
     @perform 'push', 'body': body

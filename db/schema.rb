@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180608025155) do
+ActiveRecord::Schema.define(version: 20180617141434) do
 
   create_table "rooms", force: :cascade do |t|
     t.string "name", default: "", null: false
@@ -22,6 +22,7 @@ ActiveRecord::Schema.define(version: 20180608025155) do
     t.boolean "running", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "broadcast_id", default: 0, null: false
     t.index ["name"], name: "index_rooms_on_name", unique: true
   end
 
