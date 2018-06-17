@@ -15,7 +15,7 @@ App.user = App.cable.subscriptions.create "UserChannel",
       console.log(data['broadcast_id'])
       console.log(data['value'])
       eval(data['value'])
-    alert(data['broadcast_id']+"\n"+data['value'])
+    #alert(data['broadcast_id']+"\n"+data['value'])
 
   push: (body) ->
     @perform 'push', 'body': body
