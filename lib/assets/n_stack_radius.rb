@@ -103,9 +103,8 @@ class NStackRadius
   def run(pushed_user, pushed_data)
     # {order: 'run', rulebook: ルールブックID}
     if pushed_data['order'] == 'start' # 開始
-      if @status[:room][:status][:running] == true
-        return
-      end
+      return if @status[:room][:status][:running] == true
+
       rulebook = Rulebook.find_by(id: pushed_data['rulebook'])
 
       # 構文解析
@@ -144,9 +143,11 @@ class NStackRadius
       do_operators(user[:status][:operators], user[:status][:stack], user, pushed_data)
 
     elsif pushed_data['order'] == 'end'
+      return if @status[:room][:status][:running] == false
       @status[:room][:status][:running] = false
+      self.saveStatus
       @status[:users].each_value do |user|
-        broadcast_to user, "alert('停止: ルールブックは停止されました');"
+        broadcast_to user, "alert('停止: ルールブックは停止されました');location.reload();"
       end
       return
     end
