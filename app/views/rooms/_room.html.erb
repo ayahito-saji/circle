@@ -1,0 +1,25 @@
+<h1>Room <%= @current_room.name %></h1>
+<p>
+  <label>name</label><br />
+  <%= @current_room.name %><br />
+  <label>password</label><br />
+  <%= !@current_room.password.blank? ? @current_room.password : 'no password' %><br />
+</p>
+
+<p>
+  <label>members</label>
+<ul id="member_list">
+  <% @current_room.users.each do |member| %>
+      <li><%= member.name %></li>
+  <% end %>
+</ul>
+</p>
+<p>
+  <label>rulebooks</label>
+<ul id="member_list">
+  <% Rulebook.all.each do |rulebook| %>
+      <li><a href="javascript: void(0)" onclick="App.user.push({'order': 'start', 'rulebook': <%= rulebook.id %>});"><%= rulebook.title %></a></li>
+  <% end %>
+</ul>
+</p>
+<%= link_to 'exit rooms', exit_room_path, method: :delete %>
