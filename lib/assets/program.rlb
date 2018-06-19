@@ -1,4 +1,2 @@
 phase main{
-    Hello = [112, 223, 334]
-    Hello[5] = 133
 }

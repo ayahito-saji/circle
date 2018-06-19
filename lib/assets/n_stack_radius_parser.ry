@@ -16,7 +16,7 @@ class NStackRadiusParser
         : PHASE identifier '{' statements '}'                               {result = [:phase, val[3], [val[1]]]}
 
     do
-        : identifier DO '{' statements '}'                                 {result = [:do, val[3], [val[0]]]}
+        : identifier DO '{' statements '}'                       　         {result = [:do, val[3], [val[0]]]}
 
     statements
         :                                                                   {result = [:statements, nil, []]}

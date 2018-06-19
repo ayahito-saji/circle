@@ -1,5 +1,6 @@
 class NStackRadius
   require_relative 'n_stack_radius_parser'
+  require 'securerandom'
   attr_accessor :status
   def analysis(rulebook)
     parser = NStackRadiusParser.new
@@ -80,7 +81,7 @@ class NStackRadius
               broadcast_to user, "$('#screen').html(\"#{user[:status][:screen]}\")"
               stack.push([:null, nil, 0])
             when "button"
-              user[:status][:screen] += "<button onclick=Input.click_button(this)>#{arguments[1][1][0][1]}</button><br/>"
+              user[:status][:screen] += "<button onclick=Input.click_button(this) data-auth=#{user[:status][:action_auth]}>#{arguments[1][1][0][1]}</button><br/>"
               broadcast_to user, "$('#screen').html(\"#{user[:status][:screen]}\")"
               stack.push([:null, nil, 0])
             when "input"
@@ -89,12 +90,13 @@ class NStackRadius
           end
 
         when :inputted
-          if pushed_data == nil || pushed_data['value'] == nil
+          if pushed_data && pushed_data['value'] && pushed_data['action-auth'] == user[:status][:action_auth]
+            stack.push([:string, pushed_data['value'], 0])
+            user[:status][:action_auth] = SecureRandom.urlsafe_base64
+          else
             operators.push(operator)
             return
           end
-          stack.push([:string, pushed_data['value'], 0])
-
         when :assign_variable
           # 変数環境
           if arguments[0][0] == :variable_env
@@ -176,7 +178,7 @@ class NStackRadius
         user[:status][:operators] = []
         user[:status][:screen] = "<h1>#{rulebook.title}</h1><p><button onclick=App.user.push({'order':'end'})>Quit</button></p>"
         user[:status][:active] = true
-        user[:status][:action_auth] = ""
+        user[:status][:action_auth] = SecureRandom.urlsafe_base64
         broadcast_to user, "$('#screen').html(\"#{user[:status][:screen]}\")"
       end
       # 状況の保存
