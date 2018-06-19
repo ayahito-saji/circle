@@ -90,6 +90,8 @@ class NStackRadius
           end
 
         when :inputted
+          puts "VERIFY AUTH TOKEN: #{user[:status][:action_auth]}"
+          puts "USER AUTH TOKEN  : #{pushed_data['action-auth']}"
           if pushed_data && pushed_data['value'] && pushed_data['action-auth'] == user[:status][:action_auth]
             stack.push([:string, pushed_data['value'], 0])
             user[:status][:action_auth] = SecureRandom.urlsafe_base64
