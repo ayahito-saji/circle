@@ -1,5 +1,4 @@
 phase main{
-    ActiveUser do{
-        print("Hello!")
-    }
+    Hello = [112, 223, 334]
+    Hello[5] = 133
 }

@@ -1,5 +1,6 @@
 class NStackRadius
   require_relative 'n_stack_radius_parser'
+  attr_accessor :status
   def analysis(rulebook)
     parser = NStackRadiusParser.new
     parser.parse(rulebook)
@@ -26,7 +27,13 @@ class NStackRadius
           stack.push(operator)
 
         when :add
-          stack.push([:number, arguments[0][1] + arguments[1][1], 0])
+          if arguments[0][0] == :number && arguments[1][0] == :number
+            stack.push([:number, arguments[0][1] + arguments[1][1], 0])
+          elsif (arguments[0][0] == :string && arguments[1][0] == :number) || (arguments[0][0] == :number && arguments[1][0] == :string)
+            stack.push([:string, arguments[0][1].to_s + arguments[1][1].to_s, 0])
+          elsif arguments[0][0] == :string && arguments[1][0] == :string
+            stack.push([:string, arguments[0][1] + arguments[1][1], 0])
+          end
         when :dif
           stack.push([:number, arguments[0][1] - arguments[1][1], 0])
         when :mul
@@ -36,8 +43,36 @@ class NStackRadius
         when :mod
           stack.push([:number, arguments[0][1] % arguments[1][1], 0])
 
+        when :index
+          if arguments[0][0] == :array || arguments[0][0] == :hash
+            key = arguments[1][1]
+            value = arguments[0][1][key]
+            value = [:null, nil, 0] if value.nil?
+            stack.push(value)
+          end
         when :arguments
           stack.push([:arguments, arguments, 0])
+        when :key_values
+          key_values = []
+          (arguments.length / 2).times do |i|
+            key_values << [arguments[i * 2], arguments[i * 2 + 1]]
+          end
+          stack.push([:key_values, key_values, 0])
+        when :define_array
+          array = []
+          if !arguments.empty?
+            array = arguments[0][1]
+          end
+          stack.push([:array, array, 0])
+
+        when :define_hash
+          hash = {}
+          if !arguments.empty?
+            arguments[0][1].each do |key_value|
+              hash[key_value[0][1]] = key_value[1]
+            end
+          end
+          stack.push([:hash, hash, 0])
         when :call_function
           case arguments[0][1]
             when "print"
@@ -61,12 +96,20 @@ class NStackRadius
           stack.push([:string, pushed_data['value'], 0])
 
         when :assign_variable
-          @status[:room][:status][:variable_env][arguments[0][1]] = arguments[1]
+          if arguments[0][0] == :array
+            (arguments[1][1] - arguments[0][1].length).times do
+              arguments[0][1] << [:null, nil, 0]
+            end
+            arguments[0][1][arguments[1][1]] = arguments[2]
+          elsif arguments[0][0] == :hash
+            arguments[0][1][arguments[1][1]] = arguments[2]
+          end
           pp @status[:room][:status][:variable_env]
-          stack.push(arguments[1])
+          stack.push(arguments[2])
         when :reference_variable
           stack.push(@status[:room][:status][:variable_env][arguments[0][1]])
-
+        when :variable_env
+          stack.push([:hash, @status[:room][:status][:variable_env], 0])
         when :goto
           operators = @status[:room][:status][:phase_env][arguments[0][1]].clone
           stack = []
@@ -250,6 +293,41 @@ if __FILE__ == $0
     prg = f.read.chomp
   end
   operators = radius.analysis(prg)
+
+  puts "Result OPERATORS"
+  pp operators
+
+  radius.status = {
+      room: {
+          model: nil,
+          status: {
+              running: true,
+              phase_env: {},
+              variable_env: {},
+              operators: [],
+              stack: [],
+              broadcast_id: 0
+          }
+      },
+      users: {
+          '1': {
+              model: nil,
+              status: {
+                  stack: [],
+                  operators: [],
+                  active: true,
+                  action_auth: "",
+                  screen: ""
+              }
+          }
+      }
+  }
+  puts "DO PHASE"
   radius.do_operators(operators, [], nil, nil)
-  radius.do_operators(radius.phase_environment['main'].clone, [], nil, nil)
+  radius.status[:room][:status][:operators] = radius.status[:room][:status][:phase_env]['main'].clone
+  puts
+
+  puts "*** MAIN PHASE ***"
+  radius.do_operators(radius.status[:room][:status][:operators], radius.status[:room][:status][:stack], nil, nil)
+
 end

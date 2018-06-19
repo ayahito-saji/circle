@@ -25,7 +25,8 @@ class NStackRadiusParser
 
     statement
         : expr
-        | variable_address '=' expr                                         {result = [:assign_variable, nil, [val[0], val[2]]]}
+        | identifier '=' expr                                               {result = [:assign_variable, nil, [[:variable_env, nil, nil], val[0], val[2]]]}
+        | expr '[' expr ']' '=' expr                                        {result = [:assign_variable, nil, [val[0], val[2], val[5]]]}
         | do
         | GOTO identifier                                                   {result = [:goto, nil, [val[1]]]}
 
@@ -33,23 +34,34 @@ class NStackRadiusParser
         : expr                                                              {result = [:arguments, nil, [val[0]]]}
         | arguments ',' expr                                                {result[2] << val[2]}
 
+    key_values
+        : string ':' expr                                                   {result = [:key_values, nil, [val[0], val[2]]]}
+        | key_values ',' string ':' expr                                    {result[2] << val[2] << val[4]}
+
     expr
         : expr '+' expr                                                     {result = [:add, nil, [val[0], val[2]]]}
         | expr '-' expr                                                     {result = [:dif, nil, [val[0], val[2]]]}
         | expr '*' expr                                                     {result = [:mul, nil, [val[0], val[2]]]}
         | expr '/' expr                                                     {result = [:div, nil, [val[0], val[2]]]}
         | expr '%' expr                                                     {result = [:mod, nil, [val[0], val[2]]]}
-        | NUMBER                                                            {result = [:number, val[0], nil]}
-        | STRING                                                            {result = [:string, val[0], nil]}
-        | BOOLEAN                                                           {result = [:boolean, val[0], nil]}
-        | variable_address                                                  {result = [:reference_variable, nil, [val[0]]]}
+        | number
+        | string
+        | boolean
+        | identifier                                                        {result = [:reference_variable, nil, [val[0]]]}
+        | expr '[' expr ']'                                                 {result = [:index, nil, [val[0], val[2]]]}
         | identifier '(' ')'                                                {result = [:call_function, nil, [val[0]]]}
         | identifier '(' arguments ')'                                      {result = [:call_function, nil, [val[0], val[2]]]}
+        | '[' ']'                                                           {result = [:define_array, nil, nil]}
+        | '[' arguments ']'                                                 {result = [:define_array, nil, [val[1]]]}
+        | '{' '}'                                                           {result = [:define_hash, nil, nil]}
+        | '{' key_values '}'                                                {result = [:define_hash, nil, [val[1]]]}
 
-    variable_address
-        : identifier                                                        {result = val[0]}
-        | variable_address '[' expr ']'                                     {result = [:index, nil, [val[0], val[2]]]}
-
+    number
+        : NUMBER                                                            {result = [:number, val[0], nil]}
+    string
+        : STRING                                                            {result = [:string, val[0], nil]}
+    boolean
+        : BOOLEAN                                                           {result = [:boolean, val[0], nil]}
     identifier
         : IDENTIFIER                                                        {result = [:identifier, val[0], nil]}
 end
@@ -97,13 +109,13 @@ def convert(tree)
         #puts "NODE:#{node[0]}"
         #puts "CHILDREN:#{node[2]}"
         case node[0]
-            when :phase # フェイズは特別な処理を行う
+            when :phase # phase文は特別な処理を行う
                 node[2].each do |child|
                     stack.push(child)
                 end
                 operations.push([:phase, convert(node[1]), node[2].length])
 
-            when :do
+            when :do # do文は特別な処理を行う
                 node[2].each do |child|
                     stack.push(child)
                 end
