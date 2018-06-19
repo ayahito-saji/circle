@@ -147,7 +147,7 @@ class NStackRadius
       @status[:room][:status][:running] = false
       self.saveStatus
       @status[:users].each_value do |user|
-        broadcast_to user, "alert('停止: ルールブックは停止されました');location.reload();"
+        broadcast_to user, "location.href='/'"
       end
       return
     end

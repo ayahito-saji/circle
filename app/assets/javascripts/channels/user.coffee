@@ -10,7 +10,7 @@ App.user = App.cable.subscriptions.create "UserChannel",
 
   received: (data) ->
     # Called when there's incoming data on the websocket for this channel
-    if window.broadcast_id < data['broadcast_id']
+    if window.broadcast_id < data['broadcast_id'] or data['broadcast_id'] == -1
       window.broadcast_id = data['broadcast_id']
       console.log(data['broadcast_id'])
       console.log(data['value'])
