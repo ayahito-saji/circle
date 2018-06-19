@@ -96,20 +96,28 @@ class NStackRadius
           stack.push([:string, pushed_data['value'], 0])
 
         when :assign_variable
+          # 変数環境
+          if arguments[0][0] == :variable_env
+            env = @status[:room][:status][:variable_env]
+          elsif arguments[0][0] == :array || arguments[0][0] == :hash
+            env = arguments[0][1]
+          end
+          # 変数保存
           if arguments[0][0] == :array
-            (arguments[1][1] - arguments[0][1].length).times do
-              arguments[0][1] << [:null, nil, 0]
+            (arguments[1][1] - env.length).times do
+              env << [:null, nil, 0]
             end
-            arguments[0][1][arguments[1][1]] = arguments[2]
-          elsif arguments[0][0] == :hash
-            arguments[0][1][arguments[1][1]] = arguments[2]
+            env[arguments[1][1]] = arguments[2]
+          elsif arguments[0][0] == :hash || arguments[0][0] == :variable_env
+            env[arguments[1][1]] = arguments[2]
           end
           pp @status[:room][:status][:variable_env]
           stack.push(arguments[2])
         when :reference_variable
+          pp @status[:room][:status][:variable_env]
           stack.push(@status[:room][:status][:variable_env][arguments[0][1]])
         when :variable_env
-          stack.push([:hash, @status[:room][:status][:variable_env], 0])
+          stack.push([:variable_env, nil, nil])
         when :goto
           operators = @status[:room][:status][:phase_env][arguments[0][1]].clone
           stack = []
