@@ -7,6 +7,6 @@
 var Input = {
     click_button: function(obj) {
         console.log("Click Button: Value: "+obj.innerText+"\nAuth Token:"+obj.getAttribute("data-auth"));
-        App.user.push({'order': 'action', 'type': 'button', 'value': obj.innerText, 'action-auth': obj.getAttribute("data-auth")});
+        App.user.push({'order': 'action', 'type': 'button', 'value': obj.innerText, 'action_auth': obj.getAttribute("data-auth")});
     }
 }
