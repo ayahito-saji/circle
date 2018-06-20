@@ -91,6 +91,7 @@ class NStackRadius
 
         when :inputted
           puts "***INPUT AUTH***"
+          puts pushed_data
           if pushed_data && pushed_data['value'] && pushed_data['action_auth'] == user[:status][:action_auth]
             puts "VERIFY AUTH TOKEN: #{user[:status][:action_auth]}"
             puts "USER AUTH TOKEN  : #{pushed_data['action_auth']}"
