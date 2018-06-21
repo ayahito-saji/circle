@@ -90,17 +90,17 @@ class NStackRadius
           end
 
         when :inputted
-          puts "***INPUT AUTH***"
-          puts "USER #{user[:model].name}" if user
-          puts pushed_data
-          if pushed_data && pushed_data['value'] && pushed_data['action_auth'] == user[:status][:action_auth]
+          if pushed_data
+            puts "***INPUT AUTH START***"
+            puts "USER #{user[:model].name}" if user
+            puts "DATA #{pushed_data}"
             puts "VERIFY AUTH TOKEN: #{user[:status][:action_auth]}"
-            puts "USER AUTH TOKEN  : #{pushed_data['action_auth']}"
+            puts "***INPUT AUTH END***"
+          end
+          if pushed_data && pushed_data['value'] && pushed_data['action_auth'] == user[:status][:action_auth]
             stack.push([:string, pushed_data['value'], 0])
             user[:status][:action_auth] = SecureRandom.urlsafe_base64
           else
-            puts "VERIFY AUTH TOKEN: #{user[:status][:action_auth]}"
-            puts "USER AUTH TOKEN  : #{pushed_data}"
             operators.push(operator)
             return
           end
