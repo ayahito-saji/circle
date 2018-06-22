@@ -8,15 +8,15 @@ class NStackRadius
   end
   def do_operators(operators, stack, user, pushed_data)
     while operators.length > 0
+      puts (user ? "** USER #{user[:model].name} **" : "** CENTRAL **")
+      puts "C OPRS      #{@status[:room][:status][:operators]}"
+      puts "U OPRS      #{user[:status][:operators]}" if user
       operator = operators.pop
-      puts (user ? "USER #{user[:model].name}" : "CENTRAL")
-      puts "OPERATOR #{operator}"
-      puts "OPERATORS #{operators.to_s}"
+      puts "* OPR       #{operator}"
       arguments = stack.pop(operator[2]) # オペレータで使用する変数
       data = operator[1]                 # オペレータで使用する定数
-      puts "ARGUMENTS #{arguments}"
-      puts "DATA #{data}"
-      puts "STACK #{stack}"
+      puts "ARGUMENTS   #{arguments}"
+      puts "DATA        #{data.to_s}"
 
       case operator[0] # オペレータ種類
 
@@ -132,7 +132,7 @@ class NStackRadius
         when :variable_env
           stack.push([:variable_env, nil, nil])
         when :goto
-          operators = @status[:room][:status][:phase_env][arguments[0][1]].clone
+          @status[:room][:status][:operators] = @status[:room][:status][:phase_env][arguments[0][1]].clone
           stack = []
         when :phase
           # puts "フェイズ名:#{arguments[0][1][0]} フェイズ内容:#{data[0]}"
@@ -153,14 +153,13 @@ class NStackRadius
           stack.push([:null, nil, 0])
 
       end
-      puts "STACK #{stack}"
+      puts "STACK       #{stack}"
       puts ""
     end
     stack.pop()
 #    puts "PHASE DATA"
 #    pp @status[:room][:status][:phase_env]
-    puts "VARIABLE ENVERONMENT"
-    pp @status[:room][:status][:variable_env]
+#    puts "VARIABLE ENVERONMENT #{@status[:room][:status][:variable_env]}"
   end
 
   def run(pushed_user, pushed_data)
@@ -241,8 +240,9 @@ class NStackRadius
 
   def broadcast_to(user, value)
     @status[:room][:status][:broadcast_id] += 1
-    # DeliverScriptJob.perform_later(user[:model], value, @status[:room][:status][:broadcast_id])
+    DeliverScriptJob.perform_later(user[:model], value, @status[:room][:status][:broadcast_id])
 
+=begin
     debug_code = "<h3>Operators</h3>"
     debug_code += "<table border><tr>"
     debug_code += "<th>Room</th>"
@@ -263,6 +263,7 @@ class NStackRadius
     debug_code += "</tr></table>"
     debug_code += "#{@status[:room][:status][:broadcast_id]}"
     DeliverScriptJob.perform_later(user[:model], "#{value}$('#debug').html('#{debug_code}');", @status[:room][:status][:broadcast_id])
+=end
   end
 
   def setStatus(room)
