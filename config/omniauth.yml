@@ -2,9 +2,11 @@ production: &production
   line:
     key: 1582151191
     secret: 13a91b93aa7c323c4e5fa3f3d254d511
+  twitter:
+    key: XNTYUvuYYB0IvjO0TbCHk9elg
+    secret: s5k2dC1llhOFQyb2K14gE5oRJZ2AgUSDfHyJIU3WOnbQaQTPlW
+
 development: &development
-  line:
-    key: 1582151191
-    secret: 13a91b93aa7c323c4e5fa3f3d254d511
+  <<: *production
 test:
-  <<: *development
+  <<: *production

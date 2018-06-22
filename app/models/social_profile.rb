@@ -6,10 +6,22 @@ class SocialProfile < ApplicationRecord
     credentials = omniauth['credentials']
     info = omniauth['info']
 
-    self.access_token = credentials['refresh_token']
+    case provider.to_s
+      when 'line'
+        self.access_token = credentials['refresh_token']
+      when 'twitter'
+        self.access_token = credentials['token']
+        self.url = info['urls']['Twitter']
+    end
+
     self.access_secret = credentials['secret']
     self.credentials = credentials.to_json
+    self.email = info['email']
     self.name = info['name']
+    self.nickname = info['nickname']
+    self.description = info['description'].try(:truncate, 255)
+    self.image_url = info['image']
+
     self.set_values_by_raw_info(omniauth['extra']['raw_info'])
   end
 

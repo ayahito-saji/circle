@@ -34,6 +34,8 @@ gem 'devise'
 
 gem 'omniauth-line'
 
+gem 'omniauth-twitter'
+
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
 
