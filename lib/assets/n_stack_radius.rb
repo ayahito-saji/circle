@@ -228,12 +228,6 @@ class NStackRadius
       break if @status[:room][:status][:operators].empty?
       break if !all_users_operators_empty?
     end
-
-    # デバッグ用通知
-    @status[:users].each_value do |user|
-      broadcast_to user, ""
-    end
-
   end
 
   # 各デバイスのフロントで実行されるプログラムを渡します。
