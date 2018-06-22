@@ -9,12 +9,14 @@ class NStackRadius
   def do_operators(operators, stack, user, pushed_data)
     while operators.length > 0
       operator = operators.pop
+      puts (user ? "USER #{user[:model].name}" : "CENTRAL")
       puts "OPERATOR #{operator}"
+      puts "OPERATORS #{operators.to_s}"
       arguments = stack.pop(operator[2]) # オペレータで使用する変数
-      data = operator[1]                         # オペレータで使用する定数
+      data = operator[1]                 # オペレータで使用する定数
       puts "ARGUMENTS #{arguments}"
-      puts "CONSTANT #{data}"
-      puts "USER #{user[:model].name}" if user
+      puts "DATA #{data}"
+      puts "STACK #{stack}"
 
       case operator[0] # オペレータ種類
 
@@ -78,11 +80,13 @@ class NStackRadius
           case arguments[0][1]
             when "print"
               user[:status][:screen] += "#{arguments[1][1][0][1]}<br>"
-              broadcast_to user, "$('#screen').html(\"#{user[:status][:screen]}\")"
+              broadcast_to user, "$('#screen').html(\"#{user[:status][:screen]}\");"
               stack.push([:null, nil, 0])
+            when "textbox"
+              user[:status][:screen] += "<input type=text data-auth=#{user[:status][:action_auth]}><br/>"
             when "button"
               user[:status][:screen] += "<button onclick=Input.click_button(this) data-auth=#{user[:status][:action_auth]}>#{arguments[1][1][0][1]}</button><br/>"
-              broadcast_to user, "$('#screen').html(\"#{user[:status][:screen]}\")"
+              broadcast_to user, "$('#screen').html(\"#{user[:status][:screen]}\");"
               stack.push([:null, nil, 0])
             when "input"
               operators.push([:inputted, nil, 0])
@@ -120,17 +124,16 @@ class NStackRadius
           elsif arguments[0][0] == :hash || arguments[0][0] == :variable_env
             env[arguments[1][1]] = arguments[2]
           end
-          pp @status[:room][:status][:variable_env]
+          # pp @status[:room][:status][:variable_env]
           stack.push(arguments[2])
         when :reference_variable
-          pp @status[:room][:status][:variable_env]
+          # pp @status[:room][:status][:variable_env]
           stack.push(@status[:room][:status][:variable_env][arguments[0][1]])
         when :variable_env
           stack.push([:variable_env, nil, nil])
         when :goto
           operators = @status[:room][:status][:phase_env][arguments[0][1]].clone
           stack = []
-
         when :phase
           # puts "フェイズ名:#{arguments[0][1][0]} フェイズ内容:#{data[0]}"
           # puts "@status = #{@status[:room][:status][:phase_env]}"
@@ -161,6 +164,7 @@ class NStackRadius
   end
 
   def run(pushed_user, pushed_data)
+    puts "*** RUN ***"
     # {order: 'run', rulebook: ルールブックID}
     if pushed_data['order'] == 'start' # 開始
       return if @status[:room][:status][:running] == true
@@ -186,7 +190,7 @@ class NStackRadius
         user[:status][:screen] = "<h1>#{rulebook.title}</h1><p><button onclick=App.user.push({'order':'end'})>Quit</button></p>"
         user[:status][:active] = true
         user[:status][:action_auth] = SecureRandom.urlsafe_base64
-        broadcast_to user, "$('#screen').html(\"#{user[:status][:screen]}\")"
+        broadcast_to user, "$('#screen').html(\"#{user[:status][:screen]}\");"
       end
       # 状況の保存
       @status[:room][:status][:running] = true
@@ -207,50 +211,58 @@ class NStackRadius
       @status[:room][:status][:running] = false
       self.saveStatus
       @status[:users].each_value do |user|
-        broadcast_to user, "location.href='/'"
+        broadcast_to user, "location.href='/';"
       end
       return
     end
-    p "MAIN LOOP"
-    puts "@status = #{@status}"
     while true
       # メインフェイズの実行
       if all_users_operators_empty?
+        puts "*** CENTRAL PHASE ***"
         do_operators(@status[:room][:status][:operators], @status[:room][:status][:stack], nil, nil)
       end
       # ユーザーフェイズの実行
       @status[:users].each_value do |user|
-        puts "USER PHASE: #{user[:model][:name]}"
+        puts "*** USER PHASE #{user[:model][:name]} ***"
         do_operators(user[:status][:operators], user[:status][:stack], user, nil)
       end
       break if @status[:room][:status][:operators].empty?
       break if !all_users_operators_empty?
     end
+
+    # デバッグ用通知
+    @status[:users].each_value do |user|
+      broadcast_to user, ""
+    end
+
   end
 
   # 各デバイスのフロントで実行されるプログラムを渡します。
 
   def broadcast_to(user, value)
     @status[:room][:status][:broadcast_id] += 1
-    DeliverScriptJob.perform_later(user[:model], value, @status[:room][:status][:broadcast_id])
+    # DeliverScriptJob.perform_later(user[:model], value, @status[:room][:status][:broadcast_id])
 
-    # debug_code = "<h3>Operators</h3>"
-    # debug_code += "<table><tr>"
-    # debug_code += "<th>Room</th>"
-    # @status[:users].each_value { |user| debug_code += "<th>#{user[:model].name}</th>"}
-    # debug_code += "</tr><tr>"
-    # debug_code += "<td>"
-    # @status[:room][:status][:operators].each { |operator| debug_code += "#{operator}<br/>"}
-    # debug_code += "</td>"
-    # @status[:users].each_value do |user|
-    #   debug_code += "<td>"
-    #   user[:status][:operators].each { |operator| debug_code += "#{operator}<br/>"}
-    #   debug_code += "</td>"
-    # end
-    # debug_code += "</tr></table>"
-    # @status[:users].each_value do |user|
-    #   UserChannel.broadcast_to user[:model], "$('#debug').html('#{debug_code}')"
-    # end
+    debug_code = "<h3>Operators</h3>"
+    debug_code += "<table border><tr>"
+    debug_code += "<th>Room</th>"
+    @status[:users].each_value { |user| debug_code += "<th>#{user[:model].name}</th>"}
+    debug_code += "</tr><tr><td></td>"
+    @status[:users].each_value { |user| debug_code += "<td>#{user[:status][:action_auth]}</td>"}
+    debug_code += "</tr><tr>"
+    debug_code += "<td valign=top>"
+    # @status[:room][:status][:operators].reverse.each { |operator| debug_code += "<>#{operator[0].to_s}</b><br>#{operator[1].to_s}<br/>"}
+    debug_code += @status[:room][:status][:operators].to_s
+    debug_code += "</td>"
+    @status[:users].each_value do |user|
+      debug_code += "<td valign=top>"
+      # user[:status][:operators].reverse.each { |operator| debug_code += "<b>#{operator[0].to_s}</b><br>#{operator[1].to_s}<br/>"}
+      debug_code += user[:status][:operators].to_s
+      debug_code += "</td>"
+    end
+    debug_code += "</tr></table>"
+    debug_code += "#{@status[:room][:status][:broadcast_id]}"
+    DeliverScriptJob.perform_later(user[:model], "#{value}$('#debug').html('#{debug_code}');", @status[:room][:status][:broadcast_id])
   end
 
   def setStatus(room)
@@ -339,12 +351,10 @@ if __FILE__ == $0
           }
       }
   }
-  puts "DO PHASE"
   radius.do_operators(operators, [], nil, nil)
   radius.status[:room][:status][:operators] = radius.status[:room][:status][:phase_env]['main'].clone
   puts
 
-  puts "*** MAIN PHASE ***"
   radius.do_operators(radius.status[:room][:status][:operators], radius.status[:room][:status][:stack], nil, nil)
 
 end

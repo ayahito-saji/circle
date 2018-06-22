@@ -34,7 +34,7 @@ def parse(str)
         raise("parse error")
     end
     tree = do_parse
-    pp tree
+    #pp tree
     convert(tree)
 end
 

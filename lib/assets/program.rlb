@@ -1,2 +1,4 @@
 phase main{
+    a = 0
+    goto main
 }
