@@ -9,8 +9,8 @@
 <p>
   <label>members</label>
 <ul id="member_list">
-  <% @current_room.users.each do |member| %>
-      <li><%= member.name %></li>
+  <% @current_room.users.order(:member_id).each do |member| %>
+      <li><%= member.name %>(<%= member.member_id %>)</li>
   <% end %>
 </ul>
 </p>

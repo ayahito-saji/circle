@@ -8,7 +8,7 @@ class RoomsController < ApplicationController
     exit_room
     room = Room.new(params.require(:rooms).permit(:name, :password))
     if room.save
-      current_user.update_attributes(room: room)
+      current_user.update_attributes(room: room, member_id: 0)
       redirect_to current_room_path, notice: 'Created rooms successfully.'
     else
       redirect_to current_user_path, notice: 'Invalid name or password or the name is already taken.'
@@ -18,9 +18,9 @@ class RoomsController < ApplicationController
     exit_room
     room = Room.find_by(name: params[:rooms][:name])
     if room && room.password == params[:rooms][:password] && room.running == false
-      current_user.update_attributes(room: room)
+      current_user.update_attributes(room: room, member_id: room.users.count)
       room.users.each do |member|
-        DeliverScriptJob.perform_later(member, "update_member_list(#{room.users.map{|item| item.name}})", -1)
+        DeliverScriptJob.perform_later(member, "update_member_list(#{room.users.order(:member_id).map{|item| "#{item.name}(#{item.member_id})"}})", -1)
       end
       redirect_to current_room_path, notice: 'Entered successfully.'
     else
@@ -41,8 +41,9 @@ class RoomsController < ApplicationController
         if current_room.users.count == 0
           current_room.destroy
         else
-          current_room.users.each do |member|
-            DeliverScriptJob.perform_later(member, "update_member_list(#{current_room.users.map{|item| item.name}})", -1)
+          current_room.users.order(:member_id).each_with_index do |member, index|
+            member.update_attributes(member_id: index)
+            DeliverScriptJob.perform_later(member, "update_member_list(#{current_room.users.order(:member_id).map{|item| "#{item.name}(#{item.member_id})"}})", -1)
           end
         end
       end

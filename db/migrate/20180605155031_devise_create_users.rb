@@ -7,7 +7,7 @@ class DeviseCreateUsers < ActiveRecord::Migration[5.1]
       t.text :stack,                null: true
       t.text :operators,            null: true
       t.text :screen,               null: true
-      t.boolean :active ,           null: false, default: false
+      t.integer :member_id ,        null: true
       t.string :action_auth ,       null: true
 
       ## Database authenticatable

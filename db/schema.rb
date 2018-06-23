@@ -63,7 +63,7 @@ ActiveRecord::Schema.define(version: 20180617141434) do
     t.text "stack"
     t.text "operators"
     t.text "screen"
-    t.boolean "active", default: false, null: false
+    t.integer "member_id"
     t.string "action_auth"
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false

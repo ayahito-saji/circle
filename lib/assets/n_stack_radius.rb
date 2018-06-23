@@ -83,9 +83,10 @@ class NStackRadius
               broadcast_to user, "$('#screen').html(\"#{user[:status][:screen]}\");"
               stack.push([:null, nil, 0])
             when "textbox"
-              user[:status][:screen] += "<input type=text data-auth=#{user[:status][:action_auth]}><br/>"
+              user[:status][:screen] += "<input name=#{arguments[1][1][0][1]} type=text data-type=text data-auth=#{user[:status][:action_auth]}><br/>"
+              broadcast_to user, "$('#screen').html(\"#{user[:status][:screen]}\");"
             when "button"
-              user[:status][:screen] += "<button onclick=Input.click_button(this) data-auth=#{user[:status][:action_auth]}>#{arguments[1][1][0][1]}</button><br/>"
+              user[:status][:screen] += "<button name=#{arguments[1][1][0][1]} data-type=button onclick=Input.click_button(this) data-auth=#{user[:status][:action_auth]}>#{arguments[1][1][1][1]}</button><br/>"
               broadcast_to user, "$('#screen').html(\"#{user[:status][:screen]}\");"
               stack.push([:null, nil, 0])
             when "input"
@@ -97,40 +98,54 @@ class NStackRadius
           if pushed_data
             puts "***INPUT AUTH START***"
             puts "USER #{user[:model].name}" if user
-            puts "DATA #{pushed_data}"
+            puts "PUSH_DATA #{pushed_data}"
             puts "VERIFY AUTH TOKEN: #{user[:status][:action_auth]}"
             puts "***INPUT AUTH END***"
           end
-          if pushed_data && pushed_data['value'] && pushed_data['action_auth'] == user[:status][:action_auth]
-            stack.push([:string, pushed_data['value'], 0])
+          if pushed_data && pushed_data['params'] && pushed_data['action_auth'] == user[:status][:action_auth]
+            params = {}
+            pushed_data['params'].each do |key, value|
+              case value[0]
+                when "string"
+                  params[key] = [:string, value[1], 0]
+                when "number"
+                  params[key] = [:number, value[1], 0]
+                when "boolean"
+                  params[key] = [:boolean, value[1], 0]
+              end
+            end
+            stack.push([:hash, params, 0])
             user[:status][:action_auth] = SecureRandom.urlsafe_base64
           else
             operators.push(operator)
             return
           end
         when :assign_variable
-          # 変数環境
+          # 変数保存
           if arguments[0][0] == :variable_env
             env = @status[:room][:status][:variable_env]
-          elsif arguments[0][0] == :array || arguments[0][0] == :hash
+            env[arguments[1][1]] = arguments[2]
+          elsif arguments[0][0] == :array
             env = arguments[0][1]
-          end
-          # 変数保存
-          if arguments[0][0] == :array
             (arguments[1][1] - env.length).times do
               env << [:null, nil, 0]
             end
             env[arguments[1][1]] = arguments[2]
-          elsif arguments[0][0] == :hash || arguments[0][0] == :variable_env
+          elsif arguments[0][0] == :hash
+            env = arguments[0][1]
             env[arguments[1][1]] = arguments[2]
           end
           # pp @status[:room][:status][:variable_env]
           stack.push(arguments[2])
         when :reference_variable
           # pp @status[:room][:status][:variable_env]
-          stack.push(@status[:room][:status][:variable_env][arguments[0][1]])
+          if arguments[0][1] == 'id' && user
+            stack.push([:number, user[:status][:member_id], 0])
+          else
+            stack.push(@status[:room][:status][:variable_env][arguments[0][1]])
+          end
         when :variable_env
-          stack.push([:variable_env, nil, nil])
+          stack.push([:variable_env, nil, 0])
         when :goto
           @status[:room][:status][:operators] = @status[:room][:status][:phase_env][arguments[0][1]].clone
           stack = []
@@ -142,7 +157,7 @@ class NStackRadius
 
         when :do
           do_users = @status[:users]
-          do_users.each_value do |user|
+          do_users.each do |user|
             user[:status][:stack] = []
             user[:status][:operators] = data.clone
           end
@@ -174,7 +189,12 @@ class NStackRadius
       operators = analysis(rulebook.code)
 
       @status[:room][:status][:phase_env] = {}
-      @status[:room][:status][:variable_env] = {}
+      @status[:room][:status][:variable_env] = {
+          "players" => [:array, @status[:users].map {|user| [:hash, {
+              "name" => [:string, user[:model][:name], 0],
+              "active" => [:boolean, true, 0]
+          }, 0]} ,0]
+      }
 
       # フェイズ構造を取得
       do_operators(operators, [], nil, nil)
@@ -183,11 +203,10 @@ class NStackRadius
       end
 
       # 画面の初期化、ユーザーオペレータの設定
-      @status[:users].each_value do |user|
+      @status[:users].each do |user|
         user[:status][:stack] = []
         user[:status][:operators] = []
         user[:status][:screen] = "<h1>#{rulebook.title}</h1><p><button onclick=App.user.push({'order':'end'})>Quit</button></p>"
-        user[:status][:active] = true
         user[:status][:action_auth] = SecureRandom.urlsafe_base64
         broadcast_to user, "$('#screen').html(\"#{user[:status][:screen]}\");"
       end
@@ -197,19 +216,19 @@ class NStackRadius
       @status[:room][:status][:operators] = @status[:room][:status][:phase_env]['main'].clone
     elsif pushed_data['order'] == 'onload'
       return if @status[:room][:status][:running] == false
-      user = @status[:users][pushed_user.id]
+      user = @status[:users][pushed_user.member_id]
       broadcast_to user, "$('#screen').html(\"#{user[:status][:screen]}\");"
 
       return
     elsif pushed_data['order'] == 'action'
-      user = @status[:users][pushed_user.id]
+      user = @status[:users][pushed_user.member_id]
       do_operators(user[:status][:operators], user[:status][:stack], user, pushed_data)
 
     elsif pushed_data['order'] == 'end'
       return if @status[:room][:status][:running] == false
       @status[:room][:status][:running] = false
       self.saveStatus
-      @status[:users].each_value do |user|
+      @status[:users].each do |user|
         broadcast_to user, "location.href='/';"
       end
       return
@@ -221,7 +240,7 @@ class NStackRadius
         do_operators(@status[:room][:status][:operators], @status[:room][:status][:stack], nil, nil)
       end
       # ユーザーフェイズの実行
-      @status[:users].each_value do |user|
+      @status[:users].each do |user|
         puts "*** USER PHASE #{user[:model][:name]} ***"
         do_operators(user[:status][:operators], user[:status][:stack], user, nil)
       end
@@ -240,15 +259,15 @@ class NStackRadius
     debug_code = "<h3>Operators</h3>"
     debug_code += "<table border><tr>"
     debug_code += "<th>Room</th>"
-    @status[:users].each_value { |user| debug_code += "<th>#{user[:model].name}</th>"}
+    @status[:users].each { |user| debug_code += "<th>#{user[:model].name}</th>"}
     debug_code += "</tr><tr><td></td>"
-    @status[:users].each_value { |user| debug_code += "<td>#{user[:status][:action_auth]}</td>"}
+    @status[:users].each { |user| debug_code += "<td>#{user[:status][:action_auth]}</td>"}
     debug_code += "</tr><tr>"
     debug_code += "<td valign=top>"
     # @status[:room][:status][:operators].reverse.each { |operator| debug_code += "<>#{operator[0].to_s}</b><br>#{operator[1].to_s}<br/>"}
     debug_code += @status[:room][:status][:operators].to_s
     debug_code += "</td>"
-    @status[:users].each_value do |user|
+    @status[:users].each do |user|
       debug_code += "<td valign=top>"
       # user[:status][:operators].reverse.each { |operator| debug_code += "<b>#{operator[0].to_s}</b><br>#{operator[1].to_s}<br/>"}
       debug_code += user[:status][:operators].to_s
@@ -274,25 +293,25 @@ class NStackRadius
         stack:        @status[:room][:model].stack,
         broadcast_id: @status[:room][:model].broadcast_id
     }
-    @status[:users] = {}
-    @status[:room][:model].users.each do |user|
+    @status[:users] = []
+    @status[:room][:model].users.order(:member_id).each do |user|
       buf = {
           model:      User.find(user.id)
       }
       buf[:status] = {
           stack:      buf[:model].stack,
           operators:  buf[:model].operators,
-          active:     buf[:model].active,
+          member_id:  buf[:model].member_id,
           action_auth:buf[:model].action_auth,
           screen:     buf[:model].screen
       }
-      @status[:users][buf[:model].id] = buf
+      @status[:users] << buf
     end
     puts "@status = #{@status}"
   end
   def saveStatus
     @status[:room][:model].update_attributes(@status[:room][:status])
-    @status[:users].each_value do |user|
+    @status[:users].each do |user|
       user[:model].update_attributes(user[:status])
     end
   end
@@ -300,7 +319,7 @@ class NStackRadius
 
   def all_users_operators_empty?
     all_users_operators_empty = true
-    @status[:users].each_value do |user|
+    @status[:users].each do |user|
       if user[:status][:operators].empty? == false
         all_users_operators_empty = false
         break
@@ -339,7 +358,6 @@ if __FILE__ == $0
               status: {
                   stack: [],
                   operators: [],
-                  active: true,
                   action_auth: "",
                   screen: ""
               }
