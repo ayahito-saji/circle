@@ -172,9 +172,9 @@ class NStackRadius
       puts ""
     end
     stack.pop()
-#    puts "PHASE DATA"
-#    pp @status[:room][:status][:phase_env]
-#    puts "VARIABLE ENVERONMENT #{@status[:room][:status][:variable_env]}"
+    puts "PHASE DATA"
+    pp @status[:room][:status][:phase_env]
+    puts "VARIABLE ENVERONMENT #{@status[:room][:status][:variable_env]}"
   end
 
   def run(pushed_user, pushed_data)
@@ -236,17 +236,20 @@ class NStackRadius
     while true
       # メインフェイズの実行
       if all_users_operators_empty?
-        puts "*** CENTRAL PHASE ***"
+        puts "*** CENTRAL PHASE START ***"
         do_operators(@status[:room][:status][:operators], @status[:room][:status][:stack], nil, nil)
+        puts "*** CENTRAL PHASE END ***"
       end
       # ユーザーフェイズの実行
       @status[:users].each do |user|
-        puts "*** USER PHASE #{user[:model][:name]} ***"
+        puts "*** USER PHASE #{user[:model][:name]} START ***"
         do_operators(user[:status][:operators], user[:status][:stack], user, nil)
+        puts "*** USER PHASE #{user[:model][:name]} END ***"
       end
       break if @status[:room][:status][:operators].empty?
       break if !all_users_operators_empty?
     end
+    puts "*** RUN END ***"
   end
 
   # 各デバイスのフロントで実行されるプログラムを渡します。
@@ -315,7 +318,6 @@ class NStackRadius
       user[:model].update_attributes(user[:status])
     end
   end
-  private
 
   def all_users_operators_empty?
     all_users_operators_empty = true
@@ -325,6 +327,7 @@ class NStackRadius
         break
       end
     end
+    puts "ALL USERS OPERATORS EMPTY?: #{all_users_operators_empty}"
     all_users_operators_empty
   end
 end
@@ -346,15 +349,23 @@ if __FILE__ == $0
           status: {
               running: true,
               phase_env: {},
-              variable_env: {},
+              variable_env: {
+                  "players" => [:array, [
+                      [:hash, {
+                          "name" => [:string, "User1", 0]
+                      }, 0]
+                  ], 0]
+              },
               operators: [],
               stack: [],
               broadcast_id: 0
           }
       },
-      users: {
-          '1': {
-              model: nil,
+      users: [
+          {
+              model: {
+                  name: "User1"
+              },
               status: {
                   stack: [],
                   operators: [],
@@ -362,12 +373,26 @@ if __FILE__ == $0
                   screen: ""
               }
           }
-      }
+      ]
   }
   radius.do_operators(operators, [], nil, nil)
   radius.status[:room][:status][:operators] = radius.status[:room][:status][:phase_env]['main'].clone
   puts
-
-  radius.do_operators(radius.status[:room][:status][:operators], radius.status[:room][:status][:stack], nil, nil)
-
+  while true
+    # メインフェイズの実行
+    if radius.all_users_operators_empty?
+      puts "*** CENTRAL PHASE START ***"
+      radius.do_operators(radius.status[:room][:status][:operators], radius.status[:room][:status][:stack], nil, nil)
+      puts "*** CENTRAL PHASE END ***"
+    end
+    # ユーザーフェイズの実行
+    radius.status[:users].each do |user|
+      puts "*** USER PHASE #{user[:model][:name]} START ***"
+      radius.do_operators(user[:status][:operators], user[:status][:stack], user, nil)
+      puts "*** USER PHASE #{user[:model][:name]} END ***"
+    end
+    break if radius.status[:room][:status][:operators].empty?
+    break if !radius.all_users_operators_empty?
+  end
+  puts "*** RUN END ***"
 end

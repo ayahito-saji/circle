@@ -1,4 +1,6 @@
 phase main{
-    a = 0
-    goto main
+    a = players[0].name
+    goto ph2
+}
+phase ph2{
 }
