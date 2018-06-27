@@ -192,9 +192,9 @@ class NStackRadius
           if arguments[0][1] # 条件計算式
             operators.concat(true_operators)
           else
-            if if_data.empty? == false
-              expr_operators = if_data.shift
-              operators.push([:if_eval, if_data, 1])
+            if data.empty? == false
+              expr_operators = data.shift
+              operators.push([:if_eval, data, 1])
               operators.concat(expr_operators)
             else
               stack.push([:null, nil, 0])
