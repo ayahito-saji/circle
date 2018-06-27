@@ -140,9 +140,16 @@ class NStackRadius
               operators.push([:inputted, nil, 0])
               return
             when "len"
-              params = arguments[1][1] #=> 配列[[:number, 1, 0], [:number, 2, 0], [:number, 3, 0]]
+              params = arguments[1][1] #=> 配列[[:array, [[:number, 1, 0], [:number, 2, 0], [:number, 3, 0]], 0]]
               if params[0][0] == :array || params[0][0] == :hash
                 stack.push([:number, params[0][1].length, 0])
+              else
+                stack.push([:null, nil, 0])
+              end
+            when "shuffle"
+              params = arguments[1][1] #=> 配列[[:array, [[:number, 1, 0], [:number, 2, 0], [:number, 3, 0]], 0]]
+              if params[0][0] == :array
+                stack.push([:array, params[0][1].shuffle, 0])
               else
                 stack.push([:null, nil, 0])
               end
