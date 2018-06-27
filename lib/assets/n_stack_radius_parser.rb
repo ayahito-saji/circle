@@ -571,7 +571,7 @@ module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 29)
 
 module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 32)
   def _reduce_10(val, _values, result)
-    result = []
+    result = [[:boolean, true, nil], [:statements, nil, []]]
     result
   end
 .,.,

@@ -30,7 +30,7 @@ class NStackRadiusParser
         | elsif_statements ELSE IF expr '{' statements '}'                  {result << val[3] << val[5]}
 
     else_statement
-        :                                                                   {result = []}
+        :                                                                   {result = [[:boolean, true, nil], [:statements, nil, []]]}
         | ELSE '{' statements '}'                                           {result = [[:boolean, true, nil], val[2]]}
 
     statements
