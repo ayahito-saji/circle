@@ -2,6 +2,7 @@ class NStackRadiusParser
   prechigh
     left '*' '/' '%'
     left '+' '-'
+    nonassoc '==' '!=' '<' '<=' '>' '>='
   preclow
 
   rule
@@ -15,8 +16,22 @@ class NStackRadiusParser
     phase
         : PHASE identifier '{' statements '}'                               {result = [:phase, val[3], [val[1]]]}
 
-    do
+    do_statement
         : identifier DO '{' statements '}'                                  {result = [:do, val[3], [val[0]]]}
+
+    if_else_statement
+        : if_statement elsif_statements else_statement                       {result = [:if, val[0] + val[1] + val[2], nil]}
+
+    if_statement
+        : IF expr '{' statements '}'                                        {result = [val[1], val[3]]}
+
+    elsif_statements
+        :                                                                   {result = []}
+        | elsif_statements ELSE IF expr '{' statements '}'                  {result << val[3] << val[5]}
+
+    else_statement
+        :                                                                   {result = []}
+        | ELSE '{' statements '}'                                           {result = [[:boolean, true, nil], val[2]]}
 
     statements
         :                                                                   {result = [:statements, nil, []]}
@@ -25,10 +40,11 @@ class NStackRadiusParser
 
     statement
         : expr
-        | identifier '=' expr                                               {result = [:assign_variable, nil, [[:variable_env, nil, nil], val[0], val[2]]]}
-        | expr '[' expr ']' '=' expr                                        {result = [:assign_variable, nil, [val[0], val[2], val[5]]]}
-        | expr '.' identifier '=' expr                                      {result = [:assign_variable, nil, [val[0], val[2], val[4]]]}
-        | do
+        | identifier '=' expr                                               {result = [:assign_variable, nil, [val[2], val[0], [:null, nil, nil]]]}
+        | expr '[' expr ']' '=' expr                                        {result = [:assign_variable, nil, [val[5], val[2], val[0]]]}
+        | expr '.' identifier '=' expr                                      {result = [:assign_variable, nil, [val[4], val[2], val[0]]]}
+        | do_statement
+        | if_else_statement
         | GOTO identifier                                                   {result = [:goto, nil, [val[1]]]}
 
     arguments
@@ -45,10 +61,17 @@ class NStackRadiusParser
         | expr '*' expr                                                     {result = [:mul, nil, [val[0], val[2]]]}
         | expr '/' expr                                                     {result = [:div, nil, [val[0], val[2]]]}
         | expr '%' expr                                                     {result = [:mod, nil, [val[0], val[2]]]}
+        | expr '==' expr                                                    {result = [:eq,  nil, [val[0], val[2]]]}
+        | expr '!=' expr                                                    {result = [:neq, nil, [val[0], val[2]]]}
+        | expr '<' expr                                                     {result = [:lt,  nil, [val[0], val[2]]]}
+        | expr '<=' expr                                                    {result = [:lte, nil, [val[0], val[2]]]}
+        | expr '>' expr                                                     {result = [:gt,  nil, [val[0], val[2]]]}
+        | expr '>=' expr                                                    {result = [:gte, nil, [val[0], val[2]]]}
         | number
         | string
         | boolean
         | identifier                                                        {result = [:reference_variable, nil, [val[0]]]}
+        | '(' expr ')'                                                      {result = val[1]}
         | expr '[' expr ']'                                                 {result = [:index, nil, [val[0], val[2]]]}
         | expr '.' identifier                                               {result = [:index, nil, [val[0], val[2]]]}
         | identifier '(' ')'                                                {result = [:call_function, nil, [val[0]]]}
@@ -80,22 +103,40 @@ def parse(str)
     @q = []
     while !scanner.eos?
         scanner.scan(/[\s\n]+/)
-        scanner.scan(/phase/) ?                     @q << [:PHASE, :PHASE] :
-        scanner.scan(/true/) ?                      @q << [:BOOLEAN, true] :
-        scanner.scan(/false/) ?                     @q << [:BOOLEAN, false] :
-        scanner.scan(/do/) ?                        @q << [:DO, :do] :
-        scanner.scan(/goto/) ?                      @q << [:GOTO, :goto] :
-
+        scanner.scan(/\<=/) ?                       @q << ['<=', '<='] :
+        scanner.scan(/\>=/) ?                       @q << ['>=', '>='] :
+        scanner.scan(/\</) ?                        @q << ['<', '<'] :
+        scanner.scan(/\>/) ?                        @q << ['>', '>'] :
+        scanner.scan(/\==/) ?                       @q << ['==', '=='] :
+        scanner.scan(/\!=/) ?                       @q << ['!=', '!='] :
         scanner.scan(/\".*?\"/) ?                   @q << [:STRING, scanner.matched[1..-2]] :
         scanner.scan(/\'.*?\'/) ?                   @q << [:STRING, scanner.matched[1..-2]] :
-        scanner.scan(/[a-zA-Z_][a-zA-Z0-9_]*/) ?    @q << [:IDENTIFIER, scanner.matched.to_s] :
+        scanner.scan(/[a-zA-Z_][a-zA-Z0-9_]*/) ?
+        (case scanner.matched.to_s
+            when "phase"
+                @q << [:PHASE, :PHASE]
+            when "true"
+                @q << [:BOOLEAN, true]
+            when "false"
+                @q << [:BOOLEAN, false]
+            when "do"
+                @q << [:DO, :do]
+            when "goto"
+                @q << [:GOTO, :goto]
+            when "if"
+                @q << [:IF, :if]
+            when "else"
+                @q << [:ELSE, :else]
+            else
+                @q << [:IDENTIFIER, scanner.matched.to_s]
+        end) :
         scanner.scan(/([0-9]*\.[0-9]+)/) ?          @q << [:NUMBER, scanner.matched.to_f] :
         scanner.scan(/(0|[1-9][0-9]*)/) ?           @q << [:NUMBER, scanner.matched.to_i] :
         scanner.scan(/./) ?                         @q << [scanner.matched, scanner.matched] :
         raise("parse error")
     end
     tree = do_parse
-    #pp tree
+    pp tree
     convert(tree)
 end
 
@@ -108,6 +149,9 @@ def convert(tree)
     operations = []
     while !stack.empty?
         node = stack.pop()
+        # node[0]はノードの識別子
+        # node[1]はノードの持つ固有値(値)
+        # node[2]はノードの持つ引数(配列)
         #puts "NODE:#{node[0]}"
         #puts "CHILDREN:#{node[2]}"
         case node[0]
@@ -123,6 +167,12 @@ def convert(tree)
                 end
                 operations.push([:do, convert(node[1]), node[2].length])
 
+            when :if # if文は特別な処理を行う
+                if_sets = []
+                node[1].each do |child|
+                    if_sets << convert(child)
+                end
+                operations.push([:if, if_sets, 0])
             else        # それ以外は同じ
                 if node[2]
                     node[2].each do |child|

@@ -8,11 +8,11 @@ class NStackRadius
   end
   def do_operators(operators, stack, user, pushed_data)
     while operators.length > 0
+      operator = operators.pop
       puts (user ? "** USER #{user[:model].name} **" : "** CENTRAL **")
+      puts "* OPR       #{operator}"
       puts "C OPRS      #{@status[:room][:status][:operators]}"
       puts "U OPRS      #{user[:status][:operators]}" if user
-      operator = operators.pop
-      puts "* OPR       #{operator}"
       arguments = stack.pop(operator[2]) # オペレータで使用する変数
       data = operator[1]                 # オペレータで使用する定数
       puts "ARGUMENTS   #{arguments}"
@@ -45,7 +45,51 @@ class NStackRadius
           stack.push([:number, arguments[0][1] / arguments[1][1], 0])
         when :mod
           stack.push([:number, arguments[0][1] % arguments[1][1], 0])
+        when :eq
+          if arguments[0][0] == :number && arguments[1][0] == :number
+            stack.push([:boolean, arguments[0][1] == arguments[1][1], 0])
+          elsif arguments[0][0] == :string && arguments[1][0] == :string
+            stack.push([:boolean, arguments[0][1] == arguments[1][1], 0])
+          elsif arguments[0][0] == :boolean && arguments[1][0] == :boolean
+            stack.push([:boolean, arguments[0][1] == arguments[1][1], 0])
+          else
+            stack.push([:boolean, false, 0])
+          end
+        when :lt
+          if arguments[0][0] == :number && arguments[1][0] == :number
+            stack.push([:boolean, arguments[0][1] < arguments[1][1], 0])
+          else
+            stack.push([:null, nil, 0])
+          end
+        when :lte
+          if arguments[0][0] == :number && arguments[1][0] == :number
+            stack.push([:boolean, arguments[0][1] <= arguments[1][1], 0])
+          else
+            stack.push([:null, nil, 0])
+          end
+        when :gt
+          if arguments[0][0] == :number && arguments[1][0] == :number
+            stack.push([:boolean, arguments[0][1] > arguments[1][1], 0])
+          else
+            stack.push([:null, nil, 0])
+          end
+        when :gte
+          if arguments[0][0] == :number && arguments[1][0] == :number
+            stack.push([:boolean, arguments[0][1] >= arguments[1][1], 0])
+          else
+            stack.push([:null, nil, 0])
+          end
 
+        when :neq
+          if arguments[0][0] == :number && arguments[1][0] == :number
+            stack.push([:boolean, arguments[0][1] != arguments[1][1], 0])
+          elsif arguments[0][0] == :string && arguments[1][0] == :string
+            stack.push([:boolean, arguments[0][1] != arguments[1][1], 0])
+          elsif arguments[0][0] == :boolean && arguments[1][0] == :boolean
+            stack.push([:boolean, arguments[0][1] != arguments[1][1], 0])
+          else
+            stack.push([:boolean, false, 0])
+          end
         when :index
           if arguments[0][0] == :array || arguments[0][0] == :hash
             key = arguments[1][1]
@@ -79,21 +123,52 @@ class NStackRadius
         when :call_function
           case arguments[0][1]
             when "print"
-              user[:status][:screen] += "#{arguments[1][1][0][1]}<br>"
+              params = arguments[1][1] #=> 配列[[:number, 1, 0], [:number, 2, 0], [:number, 3, 0]]のような
+              user[:status][:screen] += "#{params[0][1]}<br>"
               broadcast_to user, "$('#screen').html(\"#{user[:status][:screen]}\");"
               stack.push([:null, nil, 0])
             when "textbox"
-              user[:status][:screen] += "<input name=#{arguments[1][1][0][1]} type=text data-type=text data-auth=#{user[:status][:action_auth]}><br/>"
+              params = arguments[1][1] #=> 配列[[:number, 1, 0], [:number, 2, 0], [:number, 3, 0]]のような
+              user[:status][:screen] += "<input name=#{params[0][1]} type=text data-type=text data-auth=#{user[:status][:action_auth]}><br/>"
               broadcast_to user, "$('#screen').html(\"#{user[:status][:screen]}\");"
             when "button"
-              user[:status][:screen] += "<button name=#{arguments[1][1][0][1]} data-type=button onclick=Input.click_button(this) data-auth=#{user[:status][:action_auth]}>#{arguments[1][1][1][1]}</button><br/>"
+              params = arguments[1][1] #=> 配列[[:number, 1, 0], [:number, 2, 0], [:number, 3, 0]]のような
+              user[:status][:screen] += "<button name=#{params[0][1]} data-type=button onclick=Input.click_button(this) data-auth=#{user[:status][:action_auth]}>#{params[1][1]}</button><br/>"
               broadcast_to user, "$('#screen').html(\"#{user[:status][:screen]}\");"
               stack.push([:null, nil, 0])
             when "input"
               operators.push([:inputted, nil, 0])
               return
+            when "len"
+              params = arguments[1][1] #=> 配列[[:number, 1, 0], [:number, 2, 0], [:number, 3, 0]]のような
+              if params[0][0] == :array || params[0][0] == :hash
+                stack.push([:number, params[0][1].length, 0])
+              else
+                stack.push([:null, nil, 0])
+              end
           end
+        when :if
+          if_data = data.clone
+          expr_operators = if_data.shift
+          operators.push([:if_eval, if_data, 1])
+          operators.concat(expr_operators)
 
+        when :if_eval
+          puts "** if_eval **"
+          true_operators = data.shift
+          puts "RESULT: #{arguments[0][1]}"
+          puts "TRUE STATEMENTS: #{true_operators}"
+          if arguments[0][1] # 条件計算式
+            operators.concat(true_operators)
+          else
+            if if_data.empty? == false
+              expr_operators = if_data.shift
+              operators.push([:if_eval, if_data, 1])
+              operators.concat(expr_operators)
+            else
+              stack.push([:null, nil, 0])
+            end
+          end
         when :inputted
           if pushed_data
             puts "***INPUT AUTH START***"
@@ -122,30 +197,30 @@ class NStackRadius
           end
         when :assign_variable
           # 変数保存
-          if arguments[0][0] == :variable_env
+          if arguments[2][0] == :null
             env = @status[:room][:status][:variable_env]
-            env[arguments[1][1]] = arguments[2]
-          elsif arguments[0][0] == :array
-            env = arguments[0][1]
+            env[arguments[1][1]] = arguments[0]
+          elsif arguments[2][0] == :array
+            env = arguments[2][1]
             (arguments[1][1] - env.length).times do
               env << [:null, nil, 0]
             end
-            env[arguments[1][1]] = arguments[2]
-          elsif arguments[0][0] == :hash
-            env = arguments[0][1]
-            env[arguments[1][1]] = arguments[2]
+            env[arguments[1][1]] = arguments[0]
+          elsif arguments[2][0] == :hash
+            env = arguments[2][1]
+            env[arguments[1][1]] = arguments[0]
           end
-          # pp @status[:room][:status][:variable_env]
+          puts "VAR ENV     #{@status[:room][:status][:variable_env]}"
           stack.push(arguments[2])
         when :reference_variable
           # pp @status[:room][:status][:variable_env]
           if arguments[0][1] == 'id' && user
             stack.push([:number, user[:status][:member_id], 0])
           else
-            stack.push(@status[:room][:status][:variable_env][arguments[0][1]])
+            value = @status[:room][:status][:variable_env][arguments[0][1]]
+            value = [:null, nil, 0] if value.nil?
+            stack.push(value)
           end
-        when :variable_env
-          stack.push([:variable_env, nil, 0])
         when :goto
           @status[:room][:status][:operators] = @status[:room][:status][:phase_env][arguments[0][1]].clone
           stack = []
@@ -163,7 +238,10 @@ class NStackRadius
           end
           stack.push([:null, nil, 0])
           return
-
+        when :statements
+          res = arguments[-1]
+          res = [:null, nil, 0] if res.nil?
+          stack.push(res)
         else
           stack.push([:null, nil, 0])
 
@@ -339,6 +417,7 @@ if __FILE__ == $0
     prg = f.read.chomp
   end
   operators = radius.analysis(prg)
+
 
   puts "Result OPERATORS"
   pp operators
