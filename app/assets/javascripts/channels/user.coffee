@@ -8,8 +8,9 @@ App.user = App.cable.subscriptions.create "UserChannel",
 
   disconnected: ->
     # Called when the subscription has been terminated by the server
-    console.log("Disconnected")
-    $('#alert').html("Connection has been disconnected. <a href='/'>Reconnect</a>")
+    if $('body').attr('data-controller') == 'rooms' and $('body').attr('data-action') == 'show'
+      console.log("Disconnected")
+      $('#alert').html("Connection has been disconnected. <a href='/'>Reconnect</a>")
 
   received: (data) ->
     # Called when there's incoming data on the websocket for this channel
