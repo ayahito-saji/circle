@@ -123,16 +123,16 @@ class NStackRadius
         when :call_function
           case arguments[0][1]
             when "print"
-              params = arguments[1][1] #=> 配列[[:number, 1, 0], [:number, 2, 0], [:number, 3, 0]]のような
+              params = arguments[1][1] #=> 配列[[:string, "表示したい文字列", 0]]
               user[:status][:screen] += "#{params[0][1]}<br>"
               broadcast_to user, "$('#screen').html(\"#{user[:status][:screen]}\");"
               stack.push([:null, nil, 0])
             when "textbox"
-              params = arguments[1][1] #=> 配列[[:number, 1, 0], [:number, 2, 0], [:number, 3, 0]]のような
+              params = arguments[1][1] #=> 配列[[:string, "ID", 0]]
               user[:status][:screen] += "<input name=#{params[0][1]} type=text data-type=text data-auth=#{user[:status][:action_auth]}><br/>"
               broadcast_to user, "$('#screen').html(\"#{user[:status][:screen]}\");"
             when "button"
-              params = arguments[1][1] #=> 配列[[:number, 1, 0], [:number, 2, 0], [:number, 3, 0]]のような
+              params = arguments[1][1] #=> 配列[[:string, "ID", 0], [:number, 2, 0], [:number, 3, 0]]
               user[:status][:screen] += "<button name=#{params[0][1]} data-type=button onclick=Input.click_button(this) data-auth=#{user[:status][:action_auth]}>#{params[1][1]}</button><br/>"
               broadcast_to user, "$('#screen').html(\"#{user[:status][:screen]}\");"
               stack.push([:null, nil, 0])
@@ -140,12 +140,36 @@ class NStackRadius
               operators.push([:inputted, nil, 0])
               return
             when "len"
-              params = arguments[1][1] #=> 配列[[:number, 1, 0], [:number, 2, 0], [:number, 3, 0]]のような
+              params = arguments[1][1] #=> 配列[[:number, 1, 0], [:number, 2, 0], [:number, 3, 0]]
               if params[0][0] == :array || params[0][0] == :hash
                 stack.push([:number, params[0][1].length, 0])
               else
                 stack.push([:null, nil, 0])
               end
+            when "rand"
+              params = arguments[1][1] #=> 配列[[:number, "乱数最大値", 0]]
+              stack.push([:number, rand(params[0][1]), 0])
+            when "choose"
+              params = arguments[1][1] #=> 配列[[:number, "乱数最大値", 0], [:number, "選ぶ個数", 0]]
+              pcs = params[0][1]
+              max = params[1][1]
+              ofst = 0
+              array = []
+
+              while pcs > 0
+                r = rand
+                print "%2d: %6.3f * %2d = %6.3f <=> %d" % [ofst, r, max, r * max, pcs]
+                if r * max < pcs
+                  array << [:number, ofst, 0]
+                  pcs -= 1
+                  print " (chosen)"
+                end
+                puts
+                max -= 1
+                ofst += 1
+              end
+
+              stack.push([:array, array, 0])
           end
         when :if
           if_data = data.clone
