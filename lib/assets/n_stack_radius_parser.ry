@@ -33,6 +33,9 @@ class NStackRadiusParser
         :                                                                   {result = [[:boolean, true, nil], [:statements, nil, []]]}
         | ELSE '{' statements '}'                                           {result = [[:boolean, true, nil], val[2]]}
 
+    for_statement
+        : FOR '(' statement ';' expr ';' statement ')' '{' statements '}'   {val[9][2] << val[6];result = [:for, [val[4], val[9]], [val[2]]]}
+
     statements
         :                                                                   {result = [:statements, nil, []]}
         | statements statement                                              {result[2] << val[1]}
@@ -40,12 +43,17 @@ class NStackRadiusParser
 
     statement
         : expr
-        | identifier '=' expr                                               {result = [:assign_variable, nil, [val[2], val[0], [:null, nil, nil]]]}
-        | expr '[' expr ']' '=' expr                                        {result = [:assign_variable, nil, [val[5], val[2], val[0]]]}
-        | expr '.' identifier '=' expr                                      {result = [:assign_variable, nil, [val[4], val[2], val[0]]]}
+        | assign_statement
         | do_statement
         | if_else_statement
+        | for_statement
         | GOTO identifier                                                   {result = [:goto, nil, [val[1]]]}
+
+    assign_statement
+        : identifier '=' expr                                               {result = [:assign_variable, nil, [val[2], val[0], [:null, nil, nil]]]}
+        | expr '[' expr ']' '=' expr                                        {result = [:assign_variable, nil, [val[5], val[2], val[0]]]}
+        | expr '.' identifier '=' expr                                      {result = [:assign_variable, nil, [val[4], val[2], val[0]]]}
+
 
     arguments
         : expr                                                              {result = [:arguments, nil, [val[0]]]}
@@ -127,6 +135,8 @@ def parse(str)
                 @q << [:IF, :if]
             when "else"
                 @q << [:ELSE, :else]
+            when "for"
+                @q << [:FOR, :for]
             else
                 @q << [:IDENTIFIER, scanner.matched.to_s]
         end) :
@@ -168,11 +178,16 @@ def convert(tree)
                 operations.push([:do, convert(node[1]), node[2].length])
 
             when :if # if文は特別な処理を行う
-                if_sets = []
-                node[1].each do |child|
-                    if_sets << convert(child)
-                end
+                if_sets = node[1].map {|child| convert(child)}
                 operations.push([:if, if_sets, 0])
+
+            when :for # for文は特別な処理を行う
+                node[2].each do |child|
+                    stack.push(child)
+                end
+
+                for_sets = node[1].map {|child| convert(child)}
+                operations.push([:for, for_sets, node[2].length])
             else        # それ以外は同じ
                 if node[2]
                     node[2].each do |child|

@@ -131,14 +131,26 @@ class NStackRadius
               params = arguments[1][1] #=> 配列[[:string, "ID", 0]]
               user[:status][:screen] += "<input name=#{params[0][1]} type=text data-type=text data-auth=#{user[:status][:action_auth]}><br/>"
               broadcast_to user, "$('#screen').html(\"#{user[:status][:screen]}\");"
+              stack.push([:null, nil, 0])
             when "button"
-              params = arguments[1][1] #=> 配列[[:string, "ID", 0], [:number, 2, 0], [:number, 3, 0]]
+              params = arguments[1][1] #=> 配列[[:string, "ID", 0], [:string, "表示文字列", 0], [:number, 3, 0]]
               user[:status][:screen] += "<button name=#{params[0][1]} data-type=button onclick=Input.click_button(this) data-auth=#{user[:status][:action_auth]}>#{params[1][1]}</button><br/>"
               broadcast_to user, "$('#screen').html(\"#{user[:status][:screen]}\");"
               stack.push([:null, nil, 0])
             when "input"
               operators.push([:inputted, nil, 0])
               return
+            when "selector"
+              params = arguments[1][1] #=> 配列[[:string, "ID", 0], [:array, [], 0]]
+              user[:status][:screen] += "<select name=#{params[0][1]} data-type=select data-auth=#{user[:status][:action_auth]}>"
+              options = params[1][1] #=> [[:array, [], 0], [:array, [], 0]]
+              options.each do |o| option = o[1] #=> [[:string, "値", 0], [:string, 表示名, 0]]
+              user[:status][:screen] += "<option value=#{option[0][1]}>#{option[1][1]}</option>"
+              end
+              user[:status][:screen] += "</select><br/>"
+              broadcast_to user, "$('#screen').html(\"#{user[:status][:screen]}\");"
+              stack.push([:null, nil, 0])
+
             when "len"
               params = arguments[1][1] #=> 配列[[:array, [[:number, 1, 0], [:number, 2, 0], [:number, 3, 0]], 0]]
               if params[0][0] == :array || params[0][0] == :hash
@@ -200,6 +212,19 @@ class NStackRadius
               stack.push([:null, nil, 0])
             end
           end
+        when :for
+          operators.push([:for_eval, data, 1])
+          operators.concat(data[0])
+        when :for_eval
+          puts "** for_eval **"
+          puts "RESULT: #{arguments[0][1]}"
+          puts "TRUE STATEMENTS: #{data[1]}"
+          if arguments[0][1] # 条件計算式
+            operators.push([:for_eval, data, 1])
+            operators.concat(data[0])
+            operators.concat(data[1])
+          end
+
         when :inputted
           if pushed_data
             puts "***INPUT AUTH START***"
