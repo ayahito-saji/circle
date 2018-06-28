@@ -165,6 +165,10 @@ class NStackRadius
               else
                 stack.push([:null, nil, 0])
               end
+            when "num"
+              params = arguments[1][1] #=> 配列[[:string, "文字列", 0]]
+              string = params[0][1]
+              stack.push([:number, string.to_f, 0])
             when "rand"
               params = arguments[1][1] #=> 配列[[:number, "乱数最大値", 0]]
               stack.push([:number, rand(params[0][1]), 0])
