@@ -13,10 +13,11 @@
  *= require_tree .
  *= require_self
  */
-@font-face {
-    font-family : 'NotoSansCJKjp';
-    src: font-url('NotoSansCJKjp-Thin.otf') format('truetype');
-}
 html, body{
-    font-family: 'Roboto Mono', 'NotoSansCJKjp';
+  font-feature-settings : "palt";
+  font-family: "Roboto Mono", "Avenir Next", "游ゴシック", "メイリオ";
+  color: #474747;
+  margin: 0;
+  padding: 0;
+
 }
