@@ -1,0 +1,126 @@
+class StoneParser
+    prechigh
+        left '*' '/'
+        left '+' '-'
+    preclow
+  rule
+    program
+        : phases
+
+    phases
+        :                                                   {result = [:phases, nil, nil, []]}
+        | phases phase                                      {result[3] << val[1]}
+
+    phase
+        : PHASE identifier block                            {result = [:phase, nil, nil, [val[1], val[2]]]}
+
+    block
+        : '{' statements '}'                                {result = [:block, nil, nil, val[1]]}
+
+    statements
+        :                                                   {result = []}
+        | statements statement                              {result << val[1]}
+        | statements statement ';'                          {result << val[1]}
+
+    statement
+        : expr
+        | assign_statement
+
+
+    expr
+        : primary
+        | expr '+' expr                                     {result = [:add, val[1][:line], val[1][:value], [val[0], val[2]]]}
+        | expr '-' expr                                     {result = [:dif, val[1][:line], val[1][:value], [val[0], val[2]]]}
+        | expr '*' expr                                     {result = [:mul, val[1][:line], val[1][:value], [val[0], val[2]]]}
+        | expr '/' expr                                     {result = [:dev, val[1][:line], val[1][:value], [val[0], val[2]]]}
+        | '(' expr ')'                                      {result = val[1]}
+
+    primary
+        : number
+        | identifier                                        {result = [:reference_variable, nil, nil, [val[0]]]}
+
+    number
+        : NUMBER                                            {result = [:number, val[0][:line], val[0][:value], []]}
+
+    identifier
+        : IDENTIFIER                                        {result = [:identifier, val[0][:line], val[0][:value], []]}
+
+end
+
+---- header
+
+require 'strscan'
+require 'pp'
+
+---- inner
+
+def parse(str)
+    scanner = StringScanner.new(str)
+    @q = []
+    line = 1
+    while !scanner.eos?
+        scanner.scan(/\n/) ?                        line += 1 :
+        scanner.scan(/\s/) ?                        nil :
+        scanner.scan(/\<=/) ?                       @q << ['<=', {value: '<=', line: line}] :
+        scanner.scan(/\>=/) ?                       @q << ['>=', {value: '>=', line: line}] :
+        scanner.scan(/\</) ?                        @q << ['<', {value: '<', line: line}] :
+        scanner.scan(/\>/) ?                        @q << ['>', {value: '>', line: line}] :
+        scanner.scan(/\==/) ?                       @q << ['==', {value: '==', line: line}] :
+        scanner.scan(/\!=/) ?                       @q << ['!=', {value: '!=', line: line}] :
+        scanner.scan(/\".*?\"/) ?                   @q << [:STRING, {value: scanner.matched[1..-2], line: line}] :
+        scanner.scan(/\'.*?\'/) ?                   @q << [:STRING, {value: scanner.matched[1..-2], line: line}] :
+        scanner.scan(/[a-zA-Z_][a-zA-Z0-9_]*/) ?
+        (case scanner.matched.to_s
+            when "phase"
+                @q << [:PHASE, {value: 'phase', line: line}]
+            when "true"
+                @q << [:BOOLEAN, {value: 'true', line: line}]
+            when "false"
+                @q << [:BOOLEAN, {value: 'false', line: line}]
+            when "do"
+                @q << [:DO, {value: 'do', line: line}]
+            when "goto"
+                @q << [:GOTO, {value: 'goto', line: line}]
+            when "if"
+                @q << [:IF, {value: 'if', line: line}]
+            when "else"
+                @q << [:ELSE, {value: 'else', line: line}]
+            when "for"
+                @q << [:FOR, {value: 'for', line: line}]
+            else
+                @q << [:IDENTIFIER, {value: scanner.matched.to_s, line: line}]
+        end) :
+        scanner.scan(/([0-9]*\.[0-9]+)/) ?          @q << [:NUMBER, {value:scanner.matched.to_f, line: line}] :
+        scanner.scan(/(0|[1-9][0-9]*)/) ?           @q << [:NUMBER, {value: scanner.matched.to_i, line: line}] :
+        scanner.scan(/./) ?                         @q << [scanner.matched, {value: scanner.matched, line: line}] :
+        raise("読み込みエラー: プログラムが読み込めません. (#{line}行目)")
+    end
+    puts "TOKEN: #{@q}"
+    tree = do_parse
+    puts "TREE:"
+    p tree
+    puts
+end
+
+def next_token
+    @q.shift
+end
+
+def on_error (error_token_id, error_value, value_stack)
+    raise "文法エラー: 書き方に誤りがあります. '#{error_value[:value]}' (#{error_value[:line]}行目)"
+end
+
+---- footer
+
+if __FILE__ == $0
+    parser = StoneParser.new
+    prg = ""
+    File.open("program.rlb", "r") do |f|
+        prg = f.read + "\n"
+    end
+    begin
+        parser.parse(prg)
+    rescue => e
+        puts e
+    end
+end

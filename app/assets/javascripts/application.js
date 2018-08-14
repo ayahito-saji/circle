@@ -11,9 +11,10 @@
 // about supported directives.
 //
 //= require rails-ujs
-//= require turbolinks
 //= require_tree .
 
-function update_member_list(data){
-    $("#member_list").html(data.map(function(value){return "<li>"+value+"</li>"}).join(""))
+function getUniqueStr(myStrong){
+    var strong = 1000;
+    if (myStrong) strong = myStrong;
+    return new Date().getTime().toString(16) + Math.floor(strong*Math.random()).toString(16)
 }

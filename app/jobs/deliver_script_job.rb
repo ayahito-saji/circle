@@ -1,8 +1,8 @@
 class DeliverScriptJob < ApplicationJob
   queue_as :default
 
-  def perform(*args)
+  def perform(user, json)
     # Do something later
-    UserChannel.broadcast_to(args[0], {value: args[1], broadcast_id: args[2]})
+    UserChannel.broadcast_to(user, json)
   end
 end

@@ -4,6 +4,7 @@ class CreateRulebooks < ActiveRecord::Migration[5.1]
       t.string :title, null: false, default: ""
       t.text :description, default: ""
       t.text :code, default: ""
+      t.text :task_code, default: ""
       t.references :user, foreign_key: true
       t.integer :permission, default: 0
 

@@ -1,15 +1,22 @@
 class RulebooksController < ApplicationController
-  require_relative '../../lib/assets/n_stack_radius'
   before_action :authenticate_user!
   def new
     @rulebook = current_user.rulebooks.new
   end
   def create
     @rulebook = current_user.rulebooks.new(params.require(:rulebook).permit(:title, :description, :code, :permission))
+    begin
+      task_code = Radius::Radius.new.compile(@rulebook.code)
+    rescue => e
+      flash.now[:alert] = e
+      render 'new' and return
+    end
+    @rulebook.task_code = task_code
     if @rulebook.save
       redirect_to @rulebook, notice: 'Created successfully'
     else
-      render 'new', notice: 'title is empty'
+      flash.now[:alert] = 'title is empty'
+      render 'new'
     end
   end
   def edit
@@ -19,10 +26,20 @@ class RulebooksController < ApplicationController
   def update
     @rulebook = Rulebook.find(params[:id])
     redirect_to @rulebook unless @rulebook.user.id == current_user.id
+
+    begin
+      task_code = Radius::Radius.new.compile(params[:rulebook][:code])
+    rescue => e
+      flash.now[:alert] = e
+      @rulebook.code = params[:rulebook][:code]
+      render 'new' and return
+    end
+    @rulebook.update_attribute(:task_code, task_code)
     if @rulebook.update_attributes(params.require(:rulebook).permit(:title, :description, :code, :permission))
       redirect_to @rulebook, notice: 'Updated successfully'
     else
-      render 'edit', notice: 'title is empty'
+      flash.now[:alert] = 'title is empty'
+      render 'new'
     end
   end
   def destroy

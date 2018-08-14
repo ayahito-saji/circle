@@ -12,7 +12,7 @@ require 'pp'
 
 class NStackRadiusParser < Racc::Parser
 
-module_eval(<<'...end n_stack_radius_parser.ry/module_eval...', 'n_stack_radius_parser.ry', 108)
+module_eval(<<'...end n_stack_radius_parser.ry/module_eval...', 'stone_parser.ry', 108)
 
 def parse(str)
     scanner = StringScanner.new(str)
@@ -526,105 +526,105 @@ Racc_debug_parser = false
 
 # reduce 0 omitted
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 9)
+module_eval(<<'.,.,', 'stone_parser.ry', 9)
   def _reduce_1(val, _values, result)
     result = [:program, nil, [val[0]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 12)
+module_eval(<<'.,.,', 'stone_parser.ry', 12)
   def _reduce_2(val, _values, result)
     result = [:phases, nil, []]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 13)
+module_eval(<<'.,.,', 'stone_parser.ry', 13)
   def _reduce_3(val, _values, result)
     result[2] << val[1]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 16)
+module_eval(<<'.,.,', 'stone_parser.ry', 16)
   def _reduce_4(val, _values, result)
     result = [:phase, val[3], [val[1]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 19)
+module_eval(<<'.,.,', 'stone_parser.ry', 19)
   def _reduce_5(val, _values, result)
     result = [:do, val[3], [val[0]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 22)
+module_eval(<<'.,.,', 'stone_parser.ry', 22)
   def _reduce_6(val, _values, result)
     result = [:if, val[0] + val[1] + val[2], nil]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 25)
+module_eval(<<'.,.,', 'stone_parser.ry', 25)
   def _reduce_7(val, _values, result)
     result = [val[1], val[3]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 28)
+module_eval(<<'.,.,', 'stone_parser.ry', 28)
   def _reduce_8(val, _values, result)
     result = []
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 29)
+module_eval(<<'.,.,', 'stone_parser.ry', 29)
   def _reduce_9(val, _values, result)
     result << val[3] << val[5]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 32)
+module_eval(<<'.,.,', 'stone_parser.ry', 32)
   def _reduce_10(val, _values, result)
     result = [[:boolean, true, nil], [:statements, nil, []]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 33)
+module_eval(<<'.,.,', 'stone_parser.ry', 33)
   def _reduce_11(val, _values, result)
     result = [[:boolean, true, nil], val[2]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 36)
+module_eval(<<'.,.,', 'stone_parser.ry', 36)
   def _reduce_12(val, _values, result)
     val[9][2] << val[6];result = [:for, [val[4], val[9]], [val[2]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 39)
+module_eval(<<'.,.,', 'stone_parser.ry', 39)
   def _reduce_13(val, _values, result)
     result = [:statements, nil, []]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 40)
+module_eval(<<'.,.,', 'stone_parser.ry', 40)
   def _reduce_14(val, _values, result)
     result[2] << val[1]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 41)
+module_eval(<<'.,.,', 'stone_parser.ry', 41)
   def _reduce_15(val, _values, result)
     result[2] << val[1]
     result
@@ -641,133 +641,133 @@ module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 41)
 
 # reduce 20 omitted
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 49)
+module_eval(<<'.,.,', 'stone_parser.ry', 49)
   def _reduce_21(val, _values, result)
     result = [:goto, nil, [val[1]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 52)
+module_eval(<<'.,.,', 'stone_parser.ry', 52)
   def _reduce_22(val, _values, result)
     result = [:assign_variable, nil, [val[2], val[0], [:null, nil, nil]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 53)
+module_eval(<<'.,.,', 'stone_parser.ry', 53)
   def _reduce_23(val, _values, result)
     result = [:assign_variable, nil, [val[5], val[2], val[0]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 54)
+module_eval(<<'.,.,', 'stone_parser.ry', 54)
   def _reduce_24(val, _values, result)
     result = [:assign_variable, nil, [val[4], val[2], val[0]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 58)
+module_eval(<<'.,.,', 'stone_parser.ry', 58)
   def _reduce_25(val, _values, result)
     result = [:arguments, nil, [val[0]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 59)
+module_eval(<<'.,.,', 'stone_parser.ry', 59)
   def _reduce_26(val, _values, result)
     result[2] << val[2]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 62)
+module_eval(<<'.,.,', 'stone_parser.ry', 62)
   def _reduce_27(val, _values, result)
     result = [:key_values, nil, [val[0], val[2]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 63)
+module_eval(<<'.,.,', 'stone_parser.ry', 63)
   def _reduce_28(val, _values, result)
     result[2] << val[2] << val[4]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 66)
+module_eval(<<'.,.,', 'stone_parser.ry', 66)
   def _reduce_29(val, _values, result)
     result = [:add, nil, [val[0], val[2]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 67)
+module_eval(<<'.,.,', 'stone_parser.ry', 67)
   def _reduce_30(val, _values, result)
     result = [:dif, nil, [val[0], val[2]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 68)
+module_eval(<<'.,.,', 'stone_parser.ry', 68)
   def _reduce_31(val, _values, result)
     result = [:mul, nil, [val[0], val[2]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 69)
+module_eval(<<'.,.,', 'stone_parser.ry', 69)
   def _reduce_32(val, _values, result)
     result = [:div, nil, [val[0], val[2]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 70)
+module_eval(<<'.,.,', 'stone_parser.ry', 70)
   def _reduce_33(val, _values, result)
     result = [:mod, nil, [val[0], val[2]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 71)
+module_eval(<<'.,.,', 'stone_parser.ry', 71)
   def _reduce_34(val, _values, result)
     result = [:eq,  nil, [val[0], val[2]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 72)
+module_eval(<<'.,.,', 'stone_parser.ry', 72)
   def _reduce_35(val, _values, result)
     result = [:neq, nil, [val[0], val[2]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 73)
+module_eval(<<'.,.,', 'stone_parser.ry', 73)
   def _reduce_36(val, _values, result)
     result = [:lt,  nil, [val[0], val[2]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 74)
+module_eval(<<'.,.,', 'stone_parser.ry', 74)
   def _reduce_37(val, _values, result)
     result = [:lte, nil, [val[0], val[2]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 75)
+module_eval(<<'.,.,', 'stone_parser.ry', 75)
   def _reduce_38(val, _values, result)
     result = [:gt,  nil, [val[0], val[2]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 76)
+module_eval(<<'.,.,', 'stone_parser.ry', 76)
   def _reduce_39(val, _values, result)
     result = [:gte, nil, [val[0], val[2]]]
     result
@@ -780,98 +780,98 @@ module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 76)
 
 # reduce 42 omitted
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 80)
+module_eval(<<'.,.,', 'stone_parser.ry', 80)
   def _reduce_43(val, _values, result)
     result = [:reference_variable, nil, [val[0]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 81)
+module_eval(<<'.,.,', 'stone_parser.ry', 81)
   def _reduce_44(val, _values, result)
     result = val[1]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 82)
+module_eval(<<'.,.,', 'stone_parser.ry', 82)
   def _reduce_45(val, _values, result)
     result = [:index, nil, [val[0], val[2]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 83)
+module_eval(<<'.,.,', 'stone_parser.ry', 83)
   def _reduce_46(val, _values, result)
     result = [:index, nil, [val[0], val[2]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 84)
+module_eval(<<'.,.,', 'stone_parser.ry', 84)
   def _reduce_47(val, _values, result)
     result = [:call_function, nil, [val[0]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 85)
+module_eval(<<'.,.,', 'stone_parser.ry', 85)
   def _reduce_48(val, _values, result)
     result = [:call_function, nil, [val[0], val[2]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 86)
+module_eval(<<'.,.,', 'stone_parser.ry', 86)
   def _reduce_49(val, _values, result)
     result = [:define_array, nil, nil]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 87)
+module_eval(<<'.,.,', 'stone_parser.ry', 87)
   def _reduce_50(val, _values, result)
     result = [:define_array, nil, [val[1]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 88)
+module_eval(<<'.,.,', 'stone_parser.ry', 88)
   def _reduce_51(val, _values, result)
     result = [:define_hash, nil, nil]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 89)
+module_eval(<<'.,.,', 'stone_parser.ry', 89)
   def _reduce_52(val, _values, result)
     result = [:define_hash, nil, [val[1]]]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 92)
+module_eval(<<'.,.,', 'stone_parser.ry', 92)
   def _reduce_53(val, _values, result)
     result = [:number, val[0], nil]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 94)
+module_eval(<<'.,.,', 'stone_parser.ry', 94)
   def _reduce_54(val, _values, result)
     result = [:string, val[0], nil]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 96)
+module_eval(<<'.,.,', 'stone_parser.ry', 96)
   def _reduce_55(val, _values, result)
     result = [:boolean, val[0], nil]
     result
   end
 .,.,
 
-module_eval(<<'.,.,', 'n_stack_radius_parser.ry', 98)
+module_eval(<<'.,.,', 'stone_parser.ry', 98)
   def _reduce_56(val, _values, result)
     result = [:identifier, val[0], nil]
     result

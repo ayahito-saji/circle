@@ -3,11 +3,11 @@ class CreateRooms < ActiveRecord::Migration[5.1]
     create_table :rooms do |t|
       t.string :name,           null: false, default: ""
       t.string :password,       null: true, default: ""
-      t.text :phase_env,        null: true
-      t.text :variable_env,     null: true
+      t.integer :rulebook_id,   null: true
+      t.text :program_counter,  null: true
       t.text :stack,            null: true
-      t.text :operators,        null: true
       t.boolean :running ,      null: false, default: false
+      t.integer :broadcast_id,  null: true
 
       t.timestamps
     end

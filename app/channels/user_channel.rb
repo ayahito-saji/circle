@@ -1,5 +1,4 @@
 class UserChannel < ApplicationCable::Channel
-  require_relative '../../lib/assets/n_stack_radius'
   def subscribed
     stream_for current_user
   end
@@ -8,12 +7,16 @@ class UserChannel < ApplicationCable::Channel
     # Any cleanup needed when channel is unsubscribed
   end
 
-  def push(data)
+  def received(data)
+    # データが届いたら、
+    UserChannel.push current_user, {order: 'echo', echo_id: data['body']['echo_id']}
     if current_user.room
-      radius = NStackRadius.new
-      radius.setStatus(current_user.room)
+      radius = Radius::Radius.new
       radius.run(current_user, data['body'])
-      radius.saveStatus
     end
+  end
+
+  def UserChannel.push(user, json)
+    DeliverScriptJob.perform_later(user, JSON.dump(json))
   end
 end

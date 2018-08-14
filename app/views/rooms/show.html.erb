@@ -1,4 +1,28 @@
-<div id="screen">
-  <%= render 'rooms/room' if !@current_room.running? %>
-</div>
-<div id="debug"></div>
+<h1>Room <%= @current_room.name %></h1>
+<p>
+  <label>name</label><br />
+  <%= @current_room.name %><br />
+  <label>password</label><br />
+  <%= !@current_room.password.blank? ? @current_room.password : 'no password' %><br />
+</p>
+<% if current_user.room.running? %>
+    <%= link_to "Play game", current_play_path %><br/>
+<% end %>
+
+<p>
+  <label>members</label>
+<ul id="member_list">
+  <% @current_room.users.order(:member_id).each do |member| %>
+      <li><%= member.name %></li>
+  <% end %>
+</ul>
+</p>
+<p>
+  <label>rulebooks</label>
+<ul id="member_list">
+  <% Rulebook.all.each do |rulebook| %>
+      <li><%= link_to rulebook.title, new_play_path(id: rulebook.id), method: :post %></li>
+  <% end %>
+</ul>
+</p>
+<%= link_to 'exit rooms', exit_room_path, method: :delete %>

@@ -10,19 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180617141434) do
+ActiveRecord::Schema.define(version: 20180608025155) do
 
   create_table "rooms", force: :cascade do |t|
     t.string "name", default: "", null: false
     t.string "password", default: ""
-    t.text "phase_env"
-    t.text "variable_env"
+    t.integer "rulebook_id"
+    t.text "program_counter"
     t.text "stack"
-    t.text "operators"
     t.boolean "running", default: false, null: false
+    t.integer "broadcast_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.integer "broadcast_id", default: 0, null: false
     t.index ["name"], name: "index_rooms_on_name", unique: true
   end
 
@@ -30,6 +29,7 @@ ActiveRecord::Schema.define(version: 20180617141434) do
     t.string "title", default: "", null: false
     t.text "description", default: ""
     t.text "code", default: ""
+    t.text "task_code", default: ""
     t.integer "user_id"
     t.integer "permission", default: 0
     t.datetime "created_at", null: false

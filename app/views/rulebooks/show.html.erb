@@ -6,6 +6,27 @@
 <h2>Discription</h2>
 <p><%= @rulebook.description %></p>
 <h2>Code</h2>
-<p><%= @rulebook.code %></p>
+<p><%= simple_format(@rulebook.code.gsub("\s", "&nbsp;")) %></p>
+<h2>Task Code</h2>
+<table class="table table-striped" style="width:50%">
+  <tr>
+    <th></th>
+    <th>Ope</th>
+    <th>Ln</th>
+    <th>Val</th>
+    <th>Stk</th>
+  </tr>
+  <% if @rulebook.task_code %>
+      <% @rulebook.task_code.each_with_index do |task, index| %>
+          <tr>
+            <th><%= index %></th>
+            <td><%= task[0] %></td>
+            <td><%= task[1] %></td>
+            <td><%= task[2] %></td>
+            <td><%= task[2] %></td>
+          </tr>
+      <% end %>
+  <% end %>
+</table>
 
 <%= link_to "back", current_room_path %>
