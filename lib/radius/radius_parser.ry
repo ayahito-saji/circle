@@ -24,7 +24,6 @@ class Radius::RadiusParser
 
     statement
         : expr
-        | assign_statement
 
 
     expr
@@ -32,7 +31,7 @@ class Radius::RadiusParser
         | expr '+' expr                                     {result = [:add, val[1][:line], val[1][:value], [val[0], val[2]]]}
         | expr '-' expr                                     {result = [:dif, val[1][:line], val[1][:value], [val[0], val[2]]]}
         | expr '*' expr                                     {result = [:mul, val[1][:line], val[1][:value], [val[0], val[2]]]}
-        | expr '/' expr                                     {result = [:dev, val[1][:line], val[1][:value], [val[0], val[2]]]}
+        | expr '/' expr                                     {result = [:div, val[1][:line], val[1][:value], [val[0], val[2]]]}
         | '(' expr ')'                                      {result = val[1]}
 
     primary
