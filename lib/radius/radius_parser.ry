@@ -1,7 +1,8 @@
 class Radius::RadiusParser
     prechigh
-        left '*' '/'
+        left '*' '/' '%'
         left '+' '-'
+        left '<' '>' '<=' '>=' '==' '!=' '<>'
     preclow
   rule
     program
@@ -24,7 +25,13 @@ class Radius::RadiusParser
 
     statement
         : expr
+        | asg_statements
 
+    asg_statements
+        : identifier '=' expr                               {result = [:asg_var, val[1][:line], val[1][:value], [val[2], val[0]]]}
+        | variable '[' number ']' '=' expr                  {result = [:asg_index, val[4][:line], val[4][:value], [val[5], val[0], val[2]]]}
+        | variable '[' string ']' '=' expr                  {result = [:asg_key, val[4][:line], val[4][:value], [val[5], val[0], val[2]]]}
+        | variable '.' identifier '=' expr                  {result = [:asg_key, val[3][:line], val[3][:value], [val[4], val[0], val[2]]]}
 
     expr
         : primary
@@ -32,14 +39,37 @@ class Radius::RadiusParser
         | expr '-' expr                                     {result = [:dif, val[1][:line], val[1][:value], [val[0], val[2]]]}
         | expr '*' expr                                     {result = [:mul, val[1][:line], val[1][:value], [val[0], val[2]]]}
         | expr '/' expr                                     {result = [:div, val[1][:line], val[1][:value], [val[0], val[2]]]}
+        | expr '%' expr                                     {result = [:mod, val[1][:line], val[1][:value], [val[0], val[2]]]}
+
+        | expr '<' expr                                     {result = [:lt, val[1][:line], val[1][:value], [val[0], val[2]]]}
+        | expr '>' expr                                     {result = [:gt, val[1][:line], val[1][:value], [val[0], val[2]]]}
+        | expr '<=' expr                                    {result = [:lte, val[1][:line], val[1][:value], [val[0], val[2]]]}
+        | expr '>=' expr                                    {result = [:gte, val[1][:line], val[1][:value], [val[0], val[2]]]}
+        | expr '==' expr                                    {result = [:eq, val[1][:line], val[1][:value], [val[0], val[2]]]}
+        | expr '!=' expr                                    {result = [:neq, val[1][:line], val[1][:value], [val[0], val[2]]]}
+
         | '(' expr ')'                                      {result = val[1]}
 
     primary
         : number
-        | identifier                                        {result = [:reference_variable, nil, nil, [val[0]]]}
+        | string
+        | boolean
+        | variable
+
+    variable
+        : identifier                                        {result = [:ref_var, val[0][1], nil, [val[0]]]}
+        | variable '[' number ']'                           {result = [:ref_index, val[2][1], nil, [val[0], val[2]]]}
+        | variable '[' string ']'                           {result = [:ref_key, val[2][1], nil, [val[0], val[2]]]}
+        | variable '.' identifier                               {result = [:ref_key, val[2][1], nil, [val[0], val[2]]]}
 
     number
         : NUMBER                                            {result = [:number, val[0][:line], val[0][:value], []]}
+
+    string
+        : STRING                                            {result = [:string, val[0][:line], val[0][:value], []]}
+
+    boolean
+        : BOOLEAN                                           {result = [:boolean, val[0][:line], val[0][:value], []]}
 
     identifier
         : IDENTIFIER                                        {result = [:identifier, val[0][:line], val[0][:value], []]}
@@ -66,6 +96,7 @@ def parse(str)
         scanner.scan(/\>/) ?                        @q << ['>', {value: '>', line: line}] :
         scanner.scan(/\==/) ?                       @q << ['==', {value: '==', line: line}] :
         scanner.scan(/\!=/) ?                       @q << ['!=', {value: '!=', line: line}] :
+        scanner.scan(/\<\>/) ?                      @q << ['!=', {value: '==', line: line}] :
         scanner.scan(/\".*?\"/) ?                   @q << [:STRING, {value: scanner.matched[1..-2], line: line}] :
         scanner.scan(/\'.*?\'/) ?                   @q << [:STRING, {value: scanner.matched[1..-2], line: line}] :
         scanner.scan(/[a-zA-Z_][a-zA-Z0-9_]*/) ?

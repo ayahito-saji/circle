@@ -16,5 +16,7 @@ App.user = App.cable.subscriptions.create "UserChannel",
 
   push: (body) ->
     body.echo_id = getUniqueStr()
+    body.controller = $('body').attr('data-controller')
+    body.action = $('body').attr('data-action')
     @perform 'received', 'body': body
     $('#debug').append "<tr><td>Pushed</td><td>#{JSON.stringify(body, null, '\t')}</td></tr>"

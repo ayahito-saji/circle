@@ -11,10 +11,20 @@
     </div>
     <div class="field">
       <%= f.label :code %><br />
-      <%= f.text_area :code, autocomplete: "code", class: 'form-control', rows: 20 %>
+      <%= f.text_area :code, autocomplete: "code", class: 'form-control', rows: 20, id:'code' %>
     </div>
+    <div id="result"></div>
     <div class="actions">
+      <input type="button" value="Run" id="run">
       <%= f.submit %>
     </div>
 <% end %>
 <%= link_to "back", @rulebook %>
+
+<script>
+  <!--
+  $("#run").click(function(){
+      App.user.push({"order": "run_in_editor", "code": $("#code").val()})
+  });
+  //-->
+</script>
