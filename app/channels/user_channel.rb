@@ -20,7 +20,7 @@ class UserChannel < ApplicationCable::Channel
         task_code = radius.compile(data['body']['code'])
         begin
           env = radius.process(task_code)
-          UserChannel.push current_user, {order: 'result_in_editor', env: env}
+          UserChannel.push current_user, {order: 'finished_in_editor', env: env}
         rescue => e
           UserChannel.push current_user, {order: 'error', error: e}
         end
@@ -28,7 +28,7 @@ class UserChannel < ApplicationCable::Channel
       return
     elsif data['body']['order'] == 'stop_in_editor'
       kill_thread @thread
-      UserChannel.push current_user, {order: 'stopped_code'}
+      UserChannel.push current_user, {order: 'stopped_in_editor'}
       return
     end
 
