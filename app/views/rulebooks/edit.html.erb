@@ -16,6 +16,7 @@
     <div id="result"></div>
     <div class="actions">
       <input type="button" value="Run" id="run">
+      <input type="button" value="Stop" id="stop">
       <%= f.submit %>
     </div>
 <% end %>
@@ -25,6 +26,9 @@
   <!--
   $("#run").click(function(){
       App.user.push({"order": "run_in_editor", "code": $("#code").val()})
+  });
+  $("#stop").click(function(){
+      App.user.push({"order": "stop_in_editor"})
   });
   //-->
 </script>

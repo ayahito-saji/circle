@@ -254,7 +254,7 @@ class Radius::Radius
       when :div
         if child_codes[0][0] == :number && child_codes[1][0] == :number
           if child_codes[1][2] != 0
-            return [:number, nil, child_codes[0][2] / child_codes[1][2], 0]
+            return [:number, nil, child_codes[0][2] / child_codes[1][2].to_f, 0]
           else
             raise "#{line}行目 0で割れません"
           end
@@ -324,19 +324,10 @@ class Radius::Radius
         else
           raise "#{line}行目 変数'#{child_codes[0][2]}'が定義されていません."
         end
-
       when :ref_index
-        task_code = []
-        task_code += evaluate(child_trees[0])
-        task_code += evaluate(child_trees[1])
-        task_code << [:ref_index, line, value, 2]
-        return task_code
+
       when :ref_key
-        task_code = []
-        task_code += evaluate(child_trees[0])
-        task_code += evaluate(child_trees[1])
-        task_code << [:ref_key, line, value, 2]
-        return task_code
+
 
       when :asg_var
         if child_codes[1][0] == :identifier
@@ -345,19 +336,10 @@ class Radius::Radius
         else
           raise "#{line}行目 代入エラー"
         end
-
       when :asg_index
-        task_code = []
-        task_code += evaluate(child_trees[0])
-        task_code += evaluate(child_trees[1])
-        task_code += evaluate(child_trees[2])
-        task_code << [:asg_index, line, value, 3]
+
       when :asg_key
-        task_code = []
-        task_code += evaluate(child_trees[0])
-        task_code += evaluate(child_trees[1])
-        task_code += evaluate(child_trees[2])
-        task_code << [:asg_key, line, value, 3]
+
     end
   end
 end

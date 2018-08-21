@@ -60,7 +60,7 @@ class Radius::RadiusParser
         : identifier                                        {result = [:ref_var, val[0][1], nil, [val[0]]]}
         | variable '[' number ']'                           {result = [:ref_index, val[2][1], nil, [val[0], val[2]]]}
         | variable '[' string ']'                           {result = [:ref_key, val[2][1], nil, [val[0], val[2]]]}
-        | variable '.' identifier                               {result = [:ref_key, val[2][1], nil, [val[0], val[2]]]}
+        | variable '.' identifier                           {result = [:ref_key, val[2][1], nil, [val[0], val[2]]]}
 
     number
         : NUMBER                                            {result = [:number, val[0][:line], val[0][:value], []]}
