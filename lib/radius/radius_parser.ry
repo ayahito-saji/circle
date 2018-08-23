@@ -34,7 +34,7 @@ class Radius::RadiusParser
         | variable '.' identifier '=' expr                  {result = [:asg_index, val[3][:line], val[3][:value], [val[4], val[0], val[2]]]}
 
     goto_statement
-        : GOTO identifier                                   {result = [:goto, val[0][:line], val[0][:value], [val[1]]]}
+        : GOTO identifier                                   {result = [:new_goto, val[0][:line], val[0][:value], [val[1]]]}
 
     expr
         : primary

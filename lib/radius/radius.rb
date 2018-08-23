@@ -25,8 +25,18 @@ class Radius::Radius
       break unless task
       puts "* #{task}"
       z = run_task(task, stack, env)
-      stack.push(z) if z
-      break if z == :end
+      if z
+        if z[0] == :goto
+          program_counter = z[2]
+          stack = []
+          puts "#{stack}"
+          puts
+          next
+        elsif z[0] == :end
+          break
+        end
+        stack.push(z)
+      end
       puts "#{stack}"
       puts
       program_counter += 1
@@ -47,21 +57,35 @@ class Radius::Radius
     case operator
       when :phases # フェイズデータのハッシュから，リンクしてtask_codeを返す
         # フェイズごとに評価する(フェイズをまたぐgoto文が不完全)
+        sum_code_counter = 0
+        phases_table = {}
         evaluated_phases = []
         child_trees.each do |child_tree|
-          evaluated_phases << evaluate(child_tree)
+          evaluated_phase = evaluate(child_tree)
+          phases_table[evaluated_phase[0]] = sum_code_counter
+          evaluated_phases << evaluated_phase
+          sum_code_counter += evaluated_phase[1].length
         end
+
+        pp phases_table
         pp evaluated_phases
 
         task_code = []
         evaluated_phases.each do |evaluated_phase|
           task_code += evaluated_phase[1]
         end
+
+        # goto文をphases_tableに従って行数に変更
+        task_code.length.times do |i|
+          if task_code[i][0] == :new_goto
+            task_code[i] = [:goto, task_code[i][1], phases_table[task_code[i][2]], 0]
+          end
+        end
         return task_code
 
       when :phase # task_codeではなく，フェイズデータのハッシュを返す
         phase_data = [
-          evaluate(child_trees[0]), # フェイズの識別子
+          evaluate(child_trees[0])[0][2], # フェイズの識別子
           evaluate(child_trees[1]) << [:end, nil, nil, 0]  # フェイズのtask_code
         ]
         return phase_data
@@ -187,19 +211,22 @@ class Radius::Radius
         task_code += evaluate(child_trees[0])
         task_code += evaluate(child_trees[1])
         task_code << [:asg_var, line, value, 2]
+        return task_code
       when :asg_index
         task_code = []
-        task_code += evaluate(child_trees[0])
         task_code += evaluate(child_trees[1])
         task_code += evaluate(child_trees[2])
         task_code << [:asg_index, line, value, 3]
+        return task_code
 
+      # 配列，ハッシュ生成
       when :new_array
         task_code = []
         child_trees.each do |child_tree|
           task_code += evaluate(child_tree)
         end
         task_code << [:new_array, line, value, child_trees.length]
+        return task_code
 
       when :new_hash
         task_code = []
@@ -207,6 +234,14 @@ class Radius::Radius
           task_code += evaluate(child_tree)
         end
         task_code << [:new_hash, line, value, child_trees.length]
+        return task_code
+
+      # goto文
+      when :new_goto
+        task_code = []
+        phase_name = evaluate(child_trees[0])[0][2]
+        task_code << [:new_goto, line, phase_name, 0]
+        return task_code
 
     end
   end
@@ -222,7 +257,9 @@ class Radius::Radius
       when :block
         return child_codes[-1]
       when :end
-        return :end
+        return [:end, nil, nil, 0]
+      when :goto
+        return task
       # リテラル
       when :number
         return task
@@ -386,7 +423,6 @@ class Radius::Radius
           end
         end
         return [:hash, line, hash, 0]
-
     end
   end
 end

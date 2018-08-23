@@ -484,7 +484,7 @@ module_eval(<<'.,.,', 'radius_parser.ry', 33)
 
 module_eval(<<'.,.,', 'radius_parser.ry', 36)
   def _reduce_15(val, _values, result)
-    result = [:goto, val[0][:line], val[0][:value], [val[1]]]
+    result = [:new_goto, val[0][:line], val[0][:value], [val[1]]]
     result
   end
 .,.,
