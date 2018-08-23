@@ -1,20 +1,4 @@
 <h2>New Rulebook</h2>
 
-<%= form_for @rulebook do |f| %>
-    <div class="field">
-      <%= f.label :title %><br />
-      <%= f.text_field :title, autocomplete: "title" %>
-    </div>
-    <div class="field">
-      <%= f.label :description %><br />
-      <%= f.text_area :description, autocomplete: "description" %>
-    </div>
-    <div class="field">
-      <%= f.label :code %><br />
-      <%= f.text_area :code, autocomplete: "code", class: 'form-control', rows: 20 %>
-    </div>
-    <div class="actions">
-      <%= f.submit %>
-    </div>
-<% end %>
+<%= render 'form' %>
 <%= link_to "back", current_user_path %>

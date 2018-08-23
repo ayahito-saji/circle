@@ -1,0 +1,39 @@
+<%= form_for @rulebook do |f| %>
+    <div class="field">
+      <%= f.label :title %><br />
+      <%= f.text_field :title, autocomplete: "title" %>
+    </div>
+    <div class="field">
+      <%= f.label :description %><br />
+      <%= f.text_area :description, autocomplete: "description" %>
+    </div>
+    <div class="field">
+      <%= f.label :code %><br />
+      <%= f.text_area :code, autocomplete: "code", class: 'form-control', rows: 20, id:'code' %>
+    </div>
+    <div id="result"></div>
+    <div class="actions">
+      <input type="button" value="Run" id="run">
+      <input type="button" value="Stop" id="stop">
+      <%= f.submit "Save" %>
+    </div>
+<% end %>
+<script>
+    <!--
+    $("#run").click(function(){
+        App.user.push({"order": "run_in_editor", "code": $("#code").val()})
+    });
+    $("#stop").click(function(){
+        App.user.push({"order": "stop_in_editor"})
+    });
+    $(function(){
+        $(window).on('beforeunload', function() {
+            return '保存されていない可能性があります. このまま移動しますか？';
+        });
+
+        $("input[type=submit]").click(function() {
+            $(window).off('beforeunload');
+        });
+    });
+    //-->
+</script>

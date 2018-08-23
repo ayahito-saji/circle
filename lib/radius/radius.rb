@@ -193,12 +193,21 @@ class Radius::Radius
         task_code += evaluate(child_trees[1])
         task_code += evaluate(child_trees[2])
         task_code << [:asg_index, line, value, 3]
-      when :asg_key
+
+      when :new_array
         task_code = []
-        task_code += evaluate(child_trees[0])
-        task_code += evaluate(child_trees[1])
-        task_code += evaluate(child_trees[2])
-        task_code << [:asg_key, line, value, 3]
+        child_trees.each do |child_tree|
+          task_code += evaluate(child_tree)
+        end
+        task_code << [:new_array, line, value, child_trees.length]
+
+      when :new_hash
+        task_code = []
+        child_trees.each do |child_tree|
+          task_code += evaluate(child_tree)
+        end
+        task_code << [:new_hash, line, value, child_trees.length]
+
     end
   end
   def run_task(task, stack, env)
@@ -223,6 +232,10 @@ class Radius::Radius
         return task
       when :boolean
         return task
+      when :array
+        return task
+      when :hash
+        return task
 
       # 四則演算
       when :add
@@ -235,13 +248,13 @@ class Radius::Radius
         elsif child_codes[0][0] == :string && child_codes[1][0] == :string
           return [:string, nil, child_codes[0][2] + child_codes[1][2], 0]
         else
-          raise "#{line}行目 +が演算できません"
+          raise "演算エラー: 演算できません. '+' (#{line}行目)"
         end
       when :dif
         if child_codes[0][0] == :number && child_codes[1][0] == :number
           return [:number, nil, child_codes[0][2] - child_codes[1][2], 0]
         else
-          raise "#{line}行目 -が演算できません"
+          raise "演算エラー: 演算できません. '-' (#{line}行目)"
         end
       when :mul
         if child_codes[0][0] == :number && child_codes[1][0] == :number
@@ -249,27 +262,27 @@ class Radius::Radius
         elsif child_codes[0][0] == :string && child_codes[1][0] == :number
           return [:number, nil, child_codes[0][2] * child_codes[1][2], 0]
         else
-          raise "#{line}行目 *が演算できません"
+          raise "演算エラー: 演算できません. '*' (#{line}行目)"
         end
       when :div
         if child_codes[0][0] == :number && child_codes[1][0] == :number
           if child_codes[1][2] != 0
             return [:number, nil, child_codes[0][2] / child_codes[1][2].to_f, 0]
           else
-            raise "#{line}行目 0で割れません"
+            raise "演算エラー: 0で除算できません. '/' (#{line}行目)"
           end
         else
-          raise "#{line}行目 /が演算できません"
+          raise "演算エラー: 演算できません. '/' (#{line}行目)"
         end
       when :mod
         if child_codes[0][0] == :number && child_codes[1][0] == :number
           if child_codes[1][2] != 0
             return [:number, nil, child_codes[0][2] % child_codes[1][2], 0]
           else
-            raise "#{line}行目 0で割れません"
+            raise "演算エラー: 0で除算できません. '%' (#{line}行目)"
           end
         else
-          raise "#{line}行目 %が演算できません"
+          raise "演算エラー: 演算できません. '%' (#{line}行目)"
         end
       # 等式・不等式
       when :eq
@@ -280,7 +293,7 @@ class Radius::Radius
         elsif child_codes[0][0] == :boolean && child_codes[1][0] == :boolean
           return [:boolean, nil, child_codes[0][2] == child_codes[1][2], 0]
         else
-          raise "#{line}行目 ==が演算できません"
+          raise "比較エラー: 比較できません. '==' (#{line}行目)"
         end
       when :neq
         if child_codes[0][0] == :number && child_codes[1][0] == :number
@@ -290,31 +303,31 @@ class Radius::Radius
         elsif child_codes[0][0] == :boolean && child_codes[1][0] == :boolean
           return [:boolean, nil, child_codes[0][2] != child_codes[1][2], 0]
         else
-          raise "#{line}行目 !=が演算できません"
+          raise "比較エラー: 比較できません. '!=' (#{line}行目)"
         end
       when :lt
         if child_codes[0][0] == :number && child_codes[1][0] == :number
           return [:boolean, nil, child_codes[0][2] < child_codes[1][2], 0]
         else
-          raise "#{line}行目 <が演算できません"
+          raise "比較エラー: 比較できません. '<' (#{line}行目)"
         end
       when :lte
         if child_codes[0][0] == :number && child_codes[1][0] == :number
           return [:boolean, nil, child_codes[0][2] <= child_codes[1][2], 0]
         else
-          raise "#{line}行目 <=が演算できません"
+          raise "比較エラー: 比較できません. '<=' (#{line}行目)"
         end
       when :gt
         if child_codes[0][0] == :number && child_codes[1][0] == :number
           return [:boolean, nil, child_codes[0][2] > child_codes[1][2], 0]
         else
-          raise "#{line}行目 >が演算できません"
+          raise "比較エラー: 比較できません. '>' (#{line}行目)"
         end
       when :gte
         if child_codes[0][0] == :number && child_codes[1][0] == :number
           return [:boolean, nil, child_codes[0][2] >= child_codes[1][2], 0]
         else
-          raise "#{line}行目 >=が演算できません"
+          raise "比較エラー: 比較できません. '>=' (#{line}行目)"
         end
 
       # 変数参照，代入
@@ -322,23 +335,57 @@ class Radius::Radius
         if child_codes[0][0] == :identifier && env[child_codes[0][2]]
           return env[child_codes[0][2]]
         else
-          raise "#{line}行目 変数'#{child_codes[0][2]}'が定義されていません."
+          raise "未定義エラー: 変数が定義されていません. '#{child_codes[0][2]}' (#{line}行目)"
         end
       when :ref_index
-
-      when :ref_key
-
+        if child_codes[0][0] == :array
+          if child_codes[1][0] == :number
+            if child_codes[0][2][child_codes[1][2]]
+              return child_codes[0][2][child_codes[1][2]]
+            else
+              return [:null, nil, nil, 0]
+            end
+          else
+            raise "配列参照エラー: 整数でのみ参照可能です. '#{child_codes[1][2]}' (#{line}行目)"
+          end
+        elsif child_codes[0][0] == :hash
+          if child_codes[1][0] == :string || child_codes[1][0] == :identifier
+            if child_codes[0][2][child_codes[1][2]]
+              return child_codes[0][2][child_codes[1][2]]
+            else
+              return [:null, nil, nil, 0]
+            end
+          else
+            raise "ハッシュ参照エラー: 文字列でのみ参照可能です. '#{child_codes[1][2]}' (#{line}行目)"
+          end
+        else
+          raise "参照エラー: 配列またはハッシュではありません. (#{line}行目)"
+        end
 
       when :asg_var
         if child_codes[1][0] == :identifier
           env[child_codes[1][2]] = child_codes[0]
           return child_codes[0]
         else
-          raise "#{line}行目 代入エラー"
+          raise "代入エラー: 変数が定義できません. '#{child_codes[1][2]}' (#{line}行目)"
         end
       when :asg_index
 
-      when :asg_key
+
+      # 配列，ハッシュ生成
+      when :new_array
+        return [:array, line, child_codes, 0]
+
+      when :new_hash
+        hash = {}
+        (child_codes.length / 2).times do |i|
+          if child_codes[i*2][0] == :string
+            hash[child_codes[i*2][2]] = child_codes[i*2 + 1]
+          else
+            raise "ハッシュエラー: キーの値が文字列ではありません '#{child_codes[i*2][2]}' (#{line}行目)"
+          end
+        end
+        return [:hash, line, hash, 0]
 
     end
   end

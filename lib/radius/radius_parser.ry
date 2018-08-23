@@ -25,13 +25,16 @@ class Radius::RadiusParser
 
     statement
         : expr
-        | asg_statements
+        | asg_statement
+        | goto_statement
 
-    asg_statements
+    asg_statement
         : identifier '=' expr                               {result = [:asg_var, val[1][:line], val[1][:value], [val[2], val[0]]]}
-        | variable '[' number ']' '=' expr                  {result = [:asg_index, val[4][:line], val[4][:value], [val[5], val[0], val[2]]]}
-        | variable '[' string ']' '=' expr                  {result = [:asg_key, val[4][:line], val[4][:value], [val[5], val[0], val[2]]]}
-        | variable '.' identifier '=' expr                  {result = [:asg_key, val[3][:line], val[3][:value], [val[4], val[0], val[2]]]}
+        | variable '[' expr ']' '=' expr                    {result = [:asg_index, val[4][:line], val[4][:value], [val[5], val[0], val[2]]]}
+        | variable '.' identifier '=' expr                  {result = [:asg_index, val[3][:line], val[3][:value], [val[4], val[0], val[2]]]}
+
+    goto_statement
+        : GOTO identifier                                   {result = [:goto, val[0][:line], val[0][:value], [val[1]]]}
 
     expr
         : primary
@@ -58,9 +61,10 @@ class Radius::RadiusParser
 
     variable
         : identifier                                        {result = [:ref_var, val[0][1], nil, [val[0]]]}
-        | variable '[' number ']'                           {result = [:ref_index, val[2][1], nil, [val[0], val[2]]]}
-        | variable '[' string ']'                           {result = [:ref_key, val[2][1], nil, [val[0], val[2]]]}
-        | variable '.' identifier                           {result = [:ref_key, val[2][1], nil, [val[0], val[2]]]}
+        | new_array
+        | new_hash
+        | variable '[' expr ']'                             {result = [:ref_index, val[2][1], nil, [val[0], val[2]]]}
+        | variable '.' identifier                           {result = [:ref_index, val[2][1], nil, [val[0], val[2]]]}
 
     number
         : NUMBER                                            {result = [:number, val[0][:line], val[0][:value], []]}
@@ -74,6 +78,21 @@ class Radius::RadiusParser
     identifier
         : IDENTIFIER                                        {result = [:identifier, val[0][:line], val[0][:value], []]}
 
+    new_array
+        : '[' ']'                                           {result = [:new_array, val[0][:line], nil, []]}
+        | '[' args ']'                                      {result = [:new_array, val[0][:line], nil, val[1]]}
+
+    args
+        : expr                                              {result = [val[0]]}
+        | args ',' expr                                     {result << val[2]}
+
+    new_hash
+        : '{' '}'                                           {result = [:new_hash, val[0][:line], nil, []]}
+        | '{' params '}'                                    {result = [:new_hash, val[0][:line], nil, val[1]]}
+
+    params
+        : expr ':' expr                                   {result = [val[0], val[2]]}
+        | params ',' expr ':' expr                        {result << val[2] << val[4]}
 end
 
 ---- header

@@ -9,16 +9,16 @@ class UserChannel < ApplicationCable::Channel
   end
 
   def received(data)
-    # データが届いたら、
+    # データが届いたら
     UserChannel.push current_user, {order: 'echo', echo_id: data['body']['echo_id']}
 
     # ルールブック編集時
     if data['body']['order'] == 'run_in_editor'
       kill_thread @thread
       @thread = Thread.start do
-        radius = Radius::Radius.new
-        task_code = radius.compile(data['body']['code'])
         begin
+          radius = Radius::Radius.new
+          task_code = radius.compile(data['body']['code'])
           env = radius.process(task_code)
           UserChannel.push current_user, {order: 'finished_in_editor', env: env}
         rescue => e
