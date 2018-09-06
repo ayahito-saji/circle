@@ -6,6 +6,7 @@ class UserChannel < ApplicationCable::Channel
   def unsubscribed
     # Any cleanup needed when channel is unsubscribed
     kill_thread @main_thread
+    kill_thread @tle_thread
   end
 
   def received(data)
@@ -35,6 +36,7 @@ class UserChannel < ApplicationCable::Channel
       return
     elsif data['body']['order'] == 'stop_in_editor'
       kill_thread @main_thread
+      kill_thread @tle_thread
       UserChannel.push current_user, {order: 'stopped_in_editor'}
       return
     end
