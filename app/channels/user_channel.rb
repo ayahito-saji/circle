@@ -16,6 +16,7 @@ class UserChannel < ApplicationCable::Channel
     # ルールブック編集時
     if data['body']['order'] == 'run_in_editor'
       kill_thread @main_thread
+      kill_thread @tle_thread
       @main_thread = Thread.start do
         begin
           radius = Radius::Radius.new
