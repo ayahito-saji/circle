@@ -36,6 +36,9 @@ gem 'omniauth-line'
 
 gem 'omniauth-twitter'
 
+# Use rails-i18n to app be Japanese
+gem 'rails-i18n'
+
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
 
