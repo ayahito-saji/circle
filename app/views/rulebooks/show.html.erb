@@ -3,7 +3,7 @@
   <%= link_to "edit rulebook", edit_rulebook_path %>
   <%= link_to "delete rulebook", rulebook_path, method: :delete %>
 <% end %>
-<h2>Discription</h2>
+<h2>Description</h2>
 <p><%= @rulebook.description %></p>
 <h2>Code</h2>
 <p><%= simple_format(@rulebook.code.gsub("\s", "&nbsp;")) %></p>
