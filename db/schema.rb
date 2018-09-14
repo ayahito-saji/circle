@@ -15,11 +15,6 @@ ActiveRecord::Schema.define(version: 20180608025155) do
   create_table "rooms", force: :cascade do |t|
     t.string "name", default: "", null: false
     t.string "password", default: ""
-    t.integer "rulebook_id"
-    t.text "program_counter"
-    t.text "stack"
-    t.boolean "running", default: false, null: false
-    t.integer "broadcast_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_rooms_on_name", unique: true
@@ -60,9 +55,6 @@ ActiveRecord::Schema.define(version: 20180608025155) do
 
   create_table "users", force: :cascade do |t|
     t.string "name", default: "", null: false
-    t.text "stack"
-    t.text "operators"
-    t.text "screen"
     t.integer "member_id"
     t.string "action_auth"
     t.string "email", default: "", null: false

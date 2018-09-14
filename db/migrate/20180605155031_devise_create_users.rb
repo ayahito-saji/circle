@@ -4,9 +4,6 @@ class DeviseCreateUsers < ActiveRecord::Migration[5.1]
   def change
     create_table :users do |t|
       t.string :name,               null: false, default: ""
-      t.text :stack,                null: true
-      t.text :operators,            null: true
-      t.text :screen,               null: true
       t.integer :member_id ,        null: true
       t.string :action_auth ,       null: true
 

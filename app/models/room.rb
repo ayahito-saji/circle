@@ -6,4 +6,8 @@ class Room < ApplicationRecord
 
   validates :name, presence: true, length: { maximum: 50 }, uniqueness: true
   validates :password, length: { maximum: 50 }
+
+  def running?
+    return false
+  end
 end
