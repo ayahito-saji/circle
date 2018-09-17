@@ -3,6 +3,7 @@ class CreateRooms < ActiveRecord::Migration[5.1]
     create_table :rooms do |t|
       t.string :name,           null: false, default: ""
       t.string :password,       null: true, default: ""
+      t.integer :interpreter_id, null: true
 
       t.timestamps
     end

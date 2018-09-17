@@ -10,11 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180608025155) do
+ActiveRecord::Schema.define(version: 20180914144543) do
+
+  create_table "interpreters", force: :cascade do |t|
+    t.integer "rulebook_id"
+    t.text "task_code"
+    t.text "env"
+    t.text "sys_env"
+    t.string "processor_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
 
   create_table "rooms", force: :cascade do |t|
     t.string "name", default: "", null: false
     t.string "password", default: ""
+    t.integer "interpreter_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_rooms_on_name", unique: true
@@ -24,6 +35,7 @@ ActiveRecord::Schema.define(version: 20180608025155) do
     t.string "title", default: "", null: false
     t.text "description", default: ""
     t.text "code", default: ""
+    t.boolean "compiled", default: false
     t.text "task_code", default: ""
     t.integer "user_id"
     t.integer "permission", default: 0
