@@ -14,7 +14,8 @@ class PlaysController < ApplicationController
     current_user.room.users.each do |member|
       UserChannel.push member, {
           order: 'play_started',
-          name: rulebook.title
+          name: rulebook.title,
+          notice: "「#{rulebook.title}」が開始されました。<a href='/play'>こちらから</a>"
       }
     end
     redirect_to current_play_path
@@ -31,7 +32,8 @@ class PlaysController < ApplicationController
 
     current_user.room.users.each do |member|
       UserChannel.push member, {
-          order: 'play_ended'
+          order: 'play_ended',
+          notice: "ゲームが終了されました。"
       }
     end
 

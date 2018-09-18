@@ -11,11 +11,20 @@
 
 <p>
   <label>members</label>
-<ul id="member_list">
+<ul id="members_list">
   <% @current_room.users.order(:member_id).each do |member| %>
       <li><%= member.name %></li>
   <% end %>
 </ul>
+<script type="text/javascript">
+    //データの受け取り
+    function member_changed(members) {
+        $('#members_list').empty();
+        members.forEach(function(member) {
+            $('#members_list').append($('<li></li>').text(member));
+        })
+    }
+</script>
 </p>
 <p>
   <label>rulebooks</label>

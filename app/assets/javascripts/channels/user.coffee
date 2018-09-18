@@ -11,6 +11,7 @@ App.user = App.cable.subscriptions.create "UserChannel",
 
   received: (data) ->
     # Called when there's incoming data on the websocket for this channel
+    received(JSON.parse(data))
     $('#debug').append "<tr><td>Received</td><td>#{JSON.stringify(JSON.parse(data), null, '\t')}</td></tr>"
     console.log JSON.parse(data)
 

@@ -22,7 +22,8 @@ class RoomsController < ApplicationController
       room.users.each do |member|
         UserChannel.push member, {
             order: 'member_changed',
-            members: room.users.order(:member_id).map {|item| "#{item.name}"}
+            members: room.users.order(:member_id).map {|item| "#{item.name}"},
+            notice: "#{current_user.name}が入室しました"
         }
       end
       redirect_to current_room_path, notice: 'Entered successfully.'
@@ -59,7 +60,8 @@ class RoomsController < ApplicationController
             member.update_attributes(member_id: index)
             UserChannel.push member, {
                 order: 'member_changed',
-                members: current_room.users.order(:member_id).map {|item| "#{item.name}"}
+                members: current_room.users.order(:member_id).map {|item| "#{item.name}"},
+                notice: "#{current_user.name}が退出しました"
             }
           end
         end
