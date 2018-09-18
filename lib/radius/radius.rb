@@ -15,11 +15,11 @@ class Radius::Radius
 
     return task_code
   end
-  def process(task_code)
-    stack = []
-    env = {}
-    program_counter = 0
+  def process(task_code, env, sys_env)
+    stack = sys_env[:stack] ? sys_env[:stack] : []
+    program_counter = sys_env[:program_counter] ? sys_env[:program_counter] : 0
 
+    puts "-- Process started --"
     while true
       task = task_code[program_counter]
       break unless task
@@ -43,7 +43,7 @@ class Radius::Radius
     end
 
     puts "-- Process finished --"
-    return env
+    return env, sys_env
   end
 
   private

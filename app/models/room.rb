@@ -8,6 +8,6 @@ class Room < ApplicationRecord
   validates :password, length: { maximum: 50 }
 
   def running?
-    return false
+    return !interpreter_id.nil?
   end
 end

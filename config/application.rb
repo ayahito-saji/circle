@@ -21,6 +21,6 @@ module Circle
 
     config.autoload_paths << Rails.root.join("lib")
 
-    $processor = {}
+    $processors = {}
   end
 end
