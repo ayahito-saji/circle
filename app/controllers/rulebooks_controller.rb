@@ -6,7 +6,7 @@ class RulebooksController < ApplicationController
   def create
     @rulebook = current_user.rulebooks.new(params.require(:rulebook).permit(:title, :description, :code, :permission))
     begin
-      task_code = Radius::Radius.new.compile(@rulebook.code)
+      task_code = Radius::RadiusMain.new.compile(@rulebook.code)
     rescue => e
       flash.now[:alert] = e
       render 'new' and return
@@ -28,7 +28,7 @@ class RulebooksController < ApplicationController
     redirect_to @rulebook unless @rulebook.user.id == current_user.id
 
     begin
-      task_code = Radius::Radius.new.compile(params[:rulebook][:code])
+      task_code = Radius::RadiusMain.new.compile(params[:rulebook][:code])
     rescue => e
       flash.now[:alert] = e
       @rulebook.code = params[:rulebook][:code]

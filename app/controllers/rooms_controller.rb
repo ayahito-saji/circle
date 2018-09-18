@@ -17,7 +17,7 @@ class RoomsController < ApplicationController
   def search
     exit_room
     room = Room.find_by(name: params[:rooms][:name])
-    if room && room.password == params[:rooms][:password] && room.running == false
+    if room && room.password == params[:rooms][:password] && !room.running?
       current_user.update_attributes(room: room, member_id: room.users.count)
       room.users.each do |member|
         UserChannel.push member, {

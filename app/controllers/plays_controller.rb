@@ -10,7 +10,7 @@ class PlaysController < ApplicationController
             interpreter_id: interpreter.id
         }
     )
-
+    $processors[interpreter.processor_id].run
     current_user.room.users.each do |member|
       UserChannel.push member, {
           order: 'play_started',
@@ -39,7 +39,7 @@ class PlaysController < ApplicationController
   end
   def show
     unless user_signed_in? && current_user.room && current_user.room.running?
-      redirect_to current_user_path
+      redirect_to current_room_path
     end
   end
 end

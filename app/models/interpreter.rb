@@ -7,11 +7,11 @@ class Interpreter < ApplicationRecord
   before_create :setup_interpreter
   after_create :setup_processor
 
-  def onload
-    $processors[self.processor_id]
+  def onload(user_id)
+    puts "!!!!onload!!!!#{self.processor_id} #{user_id}"
   end
 
-  def action(action)
+  def action(user_id, data)
     $processors[self.processor_id]
   end
 
@@ -19,19 +19,25 @@ class Interpreter < ApplicationRecord
   def finish_processor(env, sys_env)
     self.update_attributes(env: env, sys_env: sys_env)
     $processors.delete(self.processor_id)
-    puts "Deleted processor"
+    puts "Deleted processor because of finished processor"
     puts "$processors"
     pp $processors
   end
 
   # プロセッサが異常終了したら呼ばれる
-  def exit_processor
+  def exit_processor(e)
     $processors.delete(self.processor_id)
+    puts "Deleted processor because of exited processor #{e}"
+    puts "$processors"
+    pp $processors
   end
 
   # プロセッサがTLEで終了したら呼ばれる
   def tle_processor
     $processors.delete(self.processor_id)
+    puts "Deleted processor because of tle processor"
+    puts "$processors"
+    pp $processors
   end
 
   private
@@ -52,6 +58,5 @@ class Interpreter < ApplicationRecord
     puts "Created processor"
     puts "$processors"
     pp $processors
-    $processors[self.processor_id].run
   end
 end

@@ -21,8 +21,8 @@ module Radius
       @main_thread = Thread.start do
         puts "Started RadiusProcesserMainThread"
         begin
-          radius = Radius::Radius.new
-          # @env, @sys_env = radius.process(@task_code, @env, @sys_env)
+          radius = Radius::RadiusMain.new
+          @env, @sys_env = radius.process(@task_code, @env, @sys_env)
           kill_thread @tle_thread
           # 正常終了
           puts "Finished RadiusProcesserMainThread"
