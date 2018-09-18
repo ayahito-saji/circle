@@ -3,9 +3,12 @@ class PlaysController < ApplicationController
     redirect_to current_room_path, alert: 'Rulebook is already running' and return if current_user.room.running?
     rulebook = Rulebook.find_by(id: params[:id])
     redirect_to current_room_path, alert: 'Rulebook is not exist' and return unless rulebook
-    room = Room.find_by(id: current_user.room_id)
-    room.update_attributes(
-                running: true
+
+    interpreter = Interpreter.create!(rulebook_id: rulebook.id)
+    current_user.room.update_attributes(
+        {
+            interpreter_id: interpreter.id
+        }
     )
 
     current_user.room.users.each do |member|
@@ -19,9 +22,11 @@ class PlaysController < ApplicationController
   def destroy
     redirect_to current_room_path and return unless current_user.room.running?
 
-    room = Room.find_by(id: current_user.room_id)
-    room.update_attributes(
-        running: false
+    Interpreter.find_by(id: current_user.room.interpreter_id).destroy
+    current_user.room.update_attributes(
+        {
+            interpreter_id: nil
+        }
     )
 
     current_user.room.users.each do |member|
